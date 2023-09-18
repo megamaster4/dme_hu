@@ -16,14 +16,13 @@ def upsert(db_engine: DBEngine, table: DeclarativeMeta, data: list[Union[Burgsta
 
     data_dict = [{k: v for k, v in value.__dict__.items() if not k.startswith("_")} for value in data]
 
-    for row in data_dict:
-        stmt = insert(table).values(row)
-        stmt = stmt.on_conflict_do_update(
-            index_elements=[table.__table__.primary_key.columns.values()[0]],
-            set_=row
-        )
-        db_engine.session.execute(stmt)
-        db_engine.session.commit()
+    stmt = insert(table).values(data_dict)
+    stmt = stmt.on_conflict_do_update(
+        index_elements=[table.__table__.primary_key.columns.values()[0]],
+        set_=stmt.excluded
+    )
+    db_engine.session.execute(stmt)
+    db_engine.session.commit()
 
 
 def get_burgstaat(db_engine: DBEngine) -> list[Burgstaat]:
