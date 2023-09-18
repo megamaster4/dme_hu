@@ -1,0 +1,31 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "Max Pot", email = "max.pot@hotmail.com"},
+    {name = "BAMPROD\\max.pot", email = "max.pot@bam.com"},
+]
+dependencies = [
+    "polars>=0.19.3",
+    "requests>=2.31.0",
+    "sqlalchemy>=2.0.20",
+    "loguru>=0.7.2",
+    "psycopg2>=2.9.7",
+    "pydantic-settings>=2.0.3",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest>=7.4.2",
+]
+linting = [
+    "ruff>=0.0.290",
+    "black>=23.9.1",
+]
+kernel = [
+    "ipykernel>=6.25.2",
+]
