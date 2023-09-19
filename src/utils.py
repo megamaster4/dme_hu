@@ -24,7 +24,7 @@ def parse_response(url: str, object: Union[Burgstaat, CategoryGroup, Geslacht, L
 
 def parse_response_bevolking(object: Bevolking = Bevolking, direct_upsert: bool = True, **kwargs) -> Union[list[Bevolking], int]:
     """Parse Bevolking XML response from CBS Statline API."""
-    skiprows = 0
+    skiprows = 19770000
     row = {}
     lijst = []
     while True:

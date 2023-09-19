@@ -1,3 +1,5 @@
+import polars as pl
+
 from loguru import logger
 from typing import Union
 from sqlalchemy import select
@@ -6,6 +8,15 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from src.db_tools import DBEngine
 from src.models import Burgstaat, Perioden, Bevolking, Regios, CategoryGroup, Geslacht, Leeftijd
+
+
+def select_polars(db_engine: DBEngine, table: DeclarativeMeta) -> pl.DataFrame:
+    """Select data from database."""
+    stmt = (
+        select(table)
+    )
+    result = [query[0].__dict__ for query in db_engine.session.execute(stmt).all()]
+    return pl.DataFrame(result, schema=table.__table__.columns.keys())
 
 
 def upsert(db_engine: DBEngine, table: DeclarativeMeta, data: list[Union[Burgstaat, Perioden, Bevolking, Regios, CategoryGroup, Geslacht, Leeftijd]]) -> None:
@@ -23,13 +34,3 @@ def upsert(db_engine: DBEngine, table: DeclarativeMeta, data: list[Union[Burgsta
     )
     db_engine.session.execute(stmt)
     db_engine.session.commit()
-
-
-def get_burgstaat(db_engine: DBEngine) -> list[Burgstaat]:
-    """Get all Burgstaat records from database."""
-    stmt = (
-        select(
-            Burgstaat
-        )
-    )
-    return [row[0] for row in db_engine.session.execute(stmt).all()]

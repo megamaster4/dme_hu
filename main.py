@@ -1,16 +1,15 @@
+import streamlit as st
+
 from loguru import logger
 
 from src.models import Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios
 from src.utils import parse_response, parse_response_bevolking
-from src.crud import upsert
+from src.crud import select_polars, upsert
 from src.db_tools import DBEngine
 from src.config import Settings
 
 
-def main():
-    # Connect to database and create engine
-    db_engine = DBEngine(**Settings().model_dump())
-
+def get_data_from_cbs(db_engine: DBEngine) -> None:
     # Get data from CBS Statline API and upsert into database
     data_dict = {
         'BurgerlijkeStaat': Burgstaat,
@@ -33,6 +32,19 @@ def main():
     logger.info(f'Parsed and inserted {rows} rows.')
 
     logger.info('Done!')
+
+
+def main():
+    # Connect to database and create engine
+    db_engine = DBEngine(**Settings().model_dump())
+
+    # get_data_from_cbs(db_engine=db_engine)
+    df = select_polars(db_engine=db_engine, table=Leeftijd).to_pandas()
+
+    st.title('Leeftijd')
+    st.subheader('Data from CBS Statline API')
+    options = st.multiselect('Select columns', df['leeftijd'].unique())
+    st.write(df.loc[df['leeftijd'].isin(options)])
 
 
 if __name__ == '__main__':
