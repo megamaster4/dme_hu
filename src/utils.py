@@ -3,8 +3,8 @@ import xml.etree.ElementTree as ET
 from loguru import logger
 
 from typing import Union
-from src.models import Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios, Bevolking
-from src.crud import upsert
+from models import Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios, Bevolking
+from crud import upsert
 
 
 def parse_response(url: str, object: Union[Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios]) -> list[Union[Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios]]:
@@ -24,7 +24,7 @@ def parse_response(url: str, object: Union[Burgstaat, CategoryGroup, Geslacht, L
 
 def parse_response_bevolking(object: Bevolking = Bevolking, direct_upsert: bool = True, **kwargs) -> Union[list[Bevolking], int]:
     """Parse Bevolking XML response from CBS Statline API."""
-    skiprows = 19770000
+    skiprows = 22500000
     row = {}
     lijst = []
     while True:

@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from src.db_tools import DBEngine
-from src.models import Burgstaat, Perioden, Bevolking, Regios, CategoryGroup, Geslacht, Leeftijd
+from db_tools import DBEngine
+from models import Burgstaat, Perioden, Bevolking, Regios, CategoryGroup, Geslacht, Leeftijd
 
 
 def select_polars(db_engine: DBEngine, table: DeclarativeMeta) -> pl.DataFrame:
@@ -16,6 +16,7 @@ def select_polars(db_engine: DBEngine, table: DeclarativeMeta) -> pl.DataFrame:
         select(table)
     )
     result = [query[0].__dict__ for query in db_engine.session.execute(stmt).all()]
+    logger.info(result[0])
     return pl.DataFrame(result, schema=table.__table__.columns.keys())
 
 

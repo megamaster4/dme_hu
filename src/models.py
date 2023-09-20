@@ -1,4 +1,4 @@
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
 
 Base = declarative_base()
@@ -24,6 +24,7 @@ class CategoryGroup(Base):
     catgroup: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
     parentid: Mapped[int] = mapped_column(nullable=True)
+    leeftijdgroup: Mapped["Leeftijd"] = relationship(back_populates="categorygroup")
 
     def __resp_keys__() -> dict[str, str]:
         return {'ID': 'catgroup_key', 'DimensionKey': 'dimensionkey', 'Title': 'catgroup', 'Description': 'description', 'ParentID': 'parentid'}
@@ -36,6 +37,7 @@ class Leeftijd(Base):
     leeftijd: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
     categorygroupid: Mapped[int] = mapped_column(ForeignKey('categorygroup.catgroup_key'), nullable=True)
+    categorygroup: Mapped["CategoryGroup"] = relationship(back_populates="leeftijdgroup")
 
     def __resp_keys__() -> dict[str, str]:
         return {'Key': 'leeftijd_key', 'Title': 'leeftijd', 'Description': 'description', 'CategoryGroupID': 'categorygroupid'}

@@ -58,4 +58,4 @@ CREATE TABLE public.bevolking (
     CONSTRAINT "regio_fkey" FOREIGN KEY (regio_key) REFERENCES regios (regio_key),
     CONSTRAINT "datum_fkey" FOREIGN KEY (datum_key) REFERENCES perioden (datum_key)
 );
-
+CREATE index idx_regio_key ON bevolking(regio_key);
