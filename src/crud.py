@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from db_tools import DBEngine
-from models import Burgstaat, Perioden, Bevolking, Regios, CategoryGroup, Geslacht, Leeftijd
+from models import Burgstaat, Perioden, Bevolking, Regios, CategoryGroup, Geslacht, Leeftijd, Bodemgebruik
 
 
 def select_polars(db_engine: DBEngine, table: DeclarativeMeta) -> pl.DataFrame:
@@ -20,7 +20,7 @@ def select_polars(db_engine: DBEngine, table: DeclarativeMeta) -> pl.DataFrame:
     return pl.DataFrame(result, schema=table.__table__.columns.keys())
 
 
-def upsert(db_engine: DBEngine, table: DeclarativeMeta, data: list[Union[Burgstaat, Perioden, Bevolking, Regios, CategoryGroup, Geslacht, Leeftijd]]) -> None:
+def upsert(db_engine: DBEngine, table: DeclarativeMeta, data: list[Union[Burgstaat, Perioden, Bevolking, Bodemgebruik, Regios, CategoryGroup, Geslacht, Leeftijd]]) -> None:
     """Upsert data into database."""
     if len(data) == 0:
         logger.warning(f'No data to upsert into {table.__tablename__}.')
