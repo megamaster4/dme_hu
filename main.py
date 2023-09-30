@@ -12,7 +12,7 @@ from src.backend.crud import select_from_db
 def main():
     # Connect to database and create engine
     db_engine = DBEngine(**Settings().model_dump())
-    
+
     # Get metadata from CBS Statline API and upsert into database
     # get_metadata_from_cbs(db_engine=db_engine)
 
@@ -35,11 +35,5 @@ def main():
                 parse_parquet_to_db(path=file, object=object, db_engine=db_engine, regios=regio_keys)
 
 
-    
-
-    # logger.info(df)
-
-
 if __name__ == "__main__":
     main()
-    

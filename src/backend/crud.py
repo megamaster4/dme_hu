@@ -10,7 +10,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 from backend.config import DFType
 from backend.db_tools import DBEngine
 from backend.models import (Bevolking, Bodemgebruik, Burgstaat, CategoryGroup,
-                    Geslacht, Leeftijd, Perioden, Regios)
+                            Geslacht, Leeftijd, Perioden, Regios)
 
 
 def select_from_db(db_engine: DBEngine, table: DeclarativeMeta, package: DFType = DFType.POLARS) -> pl.DataFrame:

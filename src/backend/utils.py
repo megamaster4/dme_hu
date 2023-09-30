@@ -59,7 +59,7 @@ def parse_response_typed_dataset(chunk_size, object: Union[Bevolking, Bodemgebru
                 row_dict = object(**row).__dict__
                 row_dict.pop('_sa_instance_state')
                 lijst.append(row_dict)
-            
+
             skiprows += chunk_size
             df = pd.DataFrame.from_dict(lijst)
             df.to_parquet(f"data/parquet/{object.__tablename__}/{object.__tablename__.title()}_{skiprows}.parquet")
@@ -100,7 +100,7 @@ def get_metadata_from_cbs(db_engine: DBEngine) -> None:
 def get_data_from_cbs(object: Union[Bevolking, Bodemgebruik], url: str, num_processes: int = 4):
     # Get data from CBS Statline API and save as parquet files due to the large size
     chunk_size = 10000  # Size of each data chunk
-    
+
     # Create a list of processes
     processes = []
     logger.info(f"Starting {num_processes} processes...")
@@ -109,7 +109,7 @@ def get_data_from_cbs(object: Union[Bevolking, Bodemgebruik], url: str, num_proc
         process = Process(target=parse_response_typed_dataset, args=(chunk_size, object, url))
         processes.append(process)
         process.start()
-    
+
     # Wait for all processes to finish
     for process in processes:
         process.join()
@@ -127,4 +127,3 @@ def parse_parquet_to_db(path: str, object: Union[Bevolking, Bodemgebruik], db_en
     list_of_objects = [object(**row) for row in list_of_dict]
 
     upsert(db_engine=db_engine, table=object, data=list_of_objects)
-
