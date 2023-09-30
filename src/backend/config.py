@@ -1,4 +1,5 @@
 from pydantic import Field
+from enum import Enum
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,3 +10,9 @@ class Settings(BaseSettings):
     db_user: str = Field(alias='DBUSER')
     db_pass: str = Field(alias='DBPASS')
     db_port: str = Field(alias='DBPORT')
+
+
+class DFType(Enum):
+    """Enum for dataframe types."""
+    POLARS = 1
+    PANDAS = 2

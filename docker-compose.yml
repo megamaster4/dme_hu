@@ -7,14 +7,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecretpassword
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./data/db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-
-volumes:
-  db_data:
-    driver : local
-    driver_opts:
-      type: none
-      device: ./data/db_data
-      o: bind

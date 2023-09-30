@@ -1,17 +1,19 @@
-import requests
 import xml.etree.ElementTree as ET
-from loguru import logger
+from multiprocessing import Process, Value
+from typing import Union
+
 import pandas as pd
 import polars as pl
-from multiprocessing import Process, Value
+import requests
+from loguru import logger
 
-from db_tools import DBEngine
-from multiprocessing import Value
-from typing import Union
-from crud import upsert
-from models import Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios, Bevolking, Bodemgebruik
+from backend.crud import upsert
+from backend.db_tools import DBEngine
+from backend.models import (Bevolking, Bodemgebruik, Burgstaat, CategoryGroup,
+                            Geslacht, Leeftijd, Perioden, Regios)
 
-total_rows_processed = Value('i', 0)
+total_rows_processed = Value('i', 52_020_000)
+
 
 def parse_response_metadata(url: str, object: Union[Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios]) -> list[Union[Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios]]:
     """Parse XML response from CBS Statline API."""
@@ -113,10 +115,16 @@ def get_data_from_cbs(object: Union[Bevolking, Bodemgebruik], url: str, num_proc
         process.join()
 
 
-def parse_parquet_to_db(path: str, object: Union[Bevolking, Bodemgebruik], db_engine: DBEngine):
+def parse_parquet_to_db(path: str, object: Union[Bevolking, Bodemgebruik], db_engine: DBEngine, regios: pl.Series):
     # Parse parquet files and upsert into database
-    logger.info(f"Parsing {path}...")
     df = pl.read_parquet(path)
+    df = df.cast(pl.Utf8)
+
+    # Filter out rows that are not in the regio_key series
+    df = df.filter(pl.col('regio_key').is_in(regios))
+
     list_of_dict = df.to_dicts()
     list_of_objects = [object(**row) for row in list_of_dict]
+
     upsert(db_engine=db_engine, table=object, data=list_of_objects)
+

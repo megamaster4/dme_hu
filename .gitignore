@@ -1,4 +1,5 @@
-data/database
+data/db_data
+data/parquet
 .vscode
 
 # Byte-compiled / optimized / DLL files

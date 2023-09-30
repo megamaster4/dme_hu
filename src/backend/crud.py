@@ -1,23 +1,29 @@
-import polars as pl
-
-from loguru import logger
 from typing import Union
+
+import pandas as pd
+import polars as pl
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from db_tools import DBEngine
-from models import Burgstaat, Perioden, Bevolking, Regios, CategoryGroup, Geslacht, Leeftijd, Bodemgebruik
+from backend.config import DFType
+from backend.db_tools import DBEngine
+from backend.models import (Bevolking, Bodemgebruik, Burgstaat, CategoryGroup,
+                    Geslacht, Leeftijd, Perioden, Regios)
 
 
-def select_polars(db_engine: DBEngine, table: DeclarativeMeta) -> pl.DataFrame:
+def select_from_db(db_engine: DBEngine, table: DeclarativeMeta, package: DFType = DFType.POLARS) -> pl.DataFrame:
     """Select data from database."""
     stmt = (
         select(table)
     )
     result = [query[0].__dict__ for query in db_engine.session.execute(stmt).all()]
-    logger.info(result[0])
-    return pl.DataFrame(result, schema=table.__table__.columns.keys())
+
+    if package.name == 'POLARS':
+        return pl.DataFrame(result, schema=table.__table__.columns.keys())
+    elif package.name == 'PANDAS':
+        return pd.DataFrame(result, columns=table.__table__.columns.keys())
 
 
 def upsert(db_engine: DBEngine, table: DeclarativeMeta, data: list[Union[Burgstaat, Perioden, Bevolking, Bodemgebruik, Regios, CategoryGroup, Geslacht, Leeftijd]]) -> None:
