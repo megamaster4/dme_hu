@@ -3,15 +3,8 @@ import sys
 import os
 import polars as pl
 
+# Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from backend import crud, models
-from backend.db_tools import DBEngine
-from backend.config import Settings, DFType
-from backend.models import Regios
-
-from sqlalchemy import select
-
 
 st.set_page_config(
     page_title="Project Introduction",
@@ -20,7 +13,7 @@ st.set_page_config(
 st.title("Wat maakt een gemeente een fijne plek om te wonen?")
 
 st.markdown(
-    """ 
+    """
     ## Project Introductie
     In dit project wordt er gekeken naar de leefbaarheid van gemeentes in Nederland. Voor de scope van dit project wordt enkel gekeken naar het bevolkingsaantal,
     de burgerlijke staat, de leeftijd van de inwoners en het bodemgebruik in hectare van de gemeenten. De data is afkomstig van het CBS Statline API.
@@ -28,7 +21,7 @@ st.markdown(
     ### Data
     De data is afkomstig van het CBS Statline API. Ter borging en ontlasting van de database, is er voor gekozen om eerst de data op te slaan in een Parquet bestand.
     Vervolgens is de data opgeslagen in een PostgreSQL database. De data is opgeslagen in verschillende tabellen. De tabellen zijn als volgt:
-    
+
     #### Metadata
     - `regios`: bevat de regio's van Nederland en die worden gebruikt binnen de data
     - `perioden`: bevat de perioden van de data, in jaren, van het jaar 1988 tot en met 2023

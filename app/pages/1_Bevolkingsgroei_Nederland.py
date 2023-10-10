@@ -1,16 +1,16 @@
-import streamlit as st
-import polars as pl
 import os
 import sys
 
+import polars as pl
+import streamlit as st
+from sqlalchemy import select
+
+# Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from backend import crud, models
+from backend.config import DFType, Settings
 from backend.db_tools import DBEngine
-from backend.config import Settings, DFType
-from backend.models import Regios
-
-from sqlalchemy import select
 
 db_engine = DBEngine(**Settings().model_dump())
 
