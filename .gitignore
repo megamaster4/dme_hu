@@ -1,6 +1,7 @@
 data/db_data
 data/parquet
 .vscode
+.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

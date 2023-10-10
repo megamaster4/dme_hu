@@ -9,7 +9,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from backend import crud, models
 from backend.db_tools import DBEngine
 from backend.config import Settings, DFType
-from backend.models import Regios
 
 from sqlalchemy import select
 
@@ -17,9 +16,11 @@ db_engine = DBEngine(**Settings().model_dump())
 
 @st.cache_data
 def get_data_gemeentes():
-    # df_regios = crud.select_table_from_db(db_engine=db_engine, table=models.Regios, package=DFType.POLARS)
-    # regios_list = df_regios.select(pl.col('regio_key')).filter(pl.col('regio_key').str.starts_with('GM'))
+    """get_data_gemeentes _summary_
 
+    Returns:
+        _type_: _description_
+    """
     stmt = (
         select(models.Bevolking.bevolking_1_januari, models.Geslacht.geslacht, models.Regios.regio, models.CategoryGroup.catgroup, models.Burgstaat.burgerlijkestaat, models.Perioden.jaar)
         .join(models.Geslacht, models.Bevolking.geslacht_key == models.Geslacht.geslacht_key)
@@ -39,6 +40,11 @@ def get_data_gemeentes():
 
 @st.cache_data
 def get_data_gemeentes_bodemgebruik():
+    """get_data_gemeentes_bodemgebruik _summary_
+
+    Returns:
+        _type_: _description_
+    """
     stmt = (
         select(models.Bevolking.bevolking_1_januari, models.Geslacht.geslacht, models.Regios.regio, models.CategoryGroup.catgroup, models.Burgstaat.burgerlijkestaat, models.Perioden.jaar, models.Bodemgebruik)
         .join(models.Geslacht, models.Bevolking.geslacht_key == models.Geslacht.geslacht_key)
@@ -131,6 +137,10 @@ st.markdown(
 )
 
 df_bodem = get_data_gemeentes_bodemgebruik()
+
+absolute_columns = models.Bodemgebruik.__table__.columns.keys()
+
+relative_columns = [f"{column}_relatief" for column in absolute_columns]
 
 devdf_bodem = df_bodem.clone()
 devdf_bodem = devdf_bodem.filter((pl.col('jaar') == pl.col('jaar').max()) & (pl.col('regio').is_in(['Amsterdam', 'Noordwijk'])))
