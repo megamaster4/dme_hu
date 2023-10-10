@@ -18,7 +18,23 @@ from backend.models import (Bevolking, Bodemgebruik, Burgstaat, CategoryGroup,
                             Geslacht, Leeftijd, Perioden, Regios)
 
 
-def select_from_db(db_engine: DBEngine, table: DeclarativeMeta, package: DFType = DFType.POLARS) -> pl.DataFrame:
+def fetch_data(stmt: select, db_engine: DBEngine, package: DFType = DFType.POLARS) -> Union[pl.DataFrame, pd.DataFrame]:
+    compiled_stmt = stmt.compile(bind=db_engine.engine, compile_kwargs={"literal_binds": True}).string
+    print(compiled_stmt)
+    if package.name == 'POLARS':
+        result_df = pl.read_database(
+            query=compiled_stmt,
+            connection=db_engine.engine
+        )
+    elif package.name == 'PANDAS':
+        result_df = pd.read_sql(
+            sql=compiled_stmt,
+            con=db_engine.engine
+        )
+    return result_df
+
+
+def select_table_from_db(db_engine: DBEngine, table: DeclarativeMeta, package: DFType = DFType.POLARS) -> pl.DataFrame:
     """Select data from database."""
     stmt = (
         select(table)

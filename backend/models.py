@@ -24,7 +24,6 @@ class CategoryGroup(Base):
     catgroup: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
     parentid: Mapped[int] = mapped_column(nullable=True)
-    leeftijdgroup: Mapped["Leeftijd"] = relationship(back_populates="categorygroup")
 
     def __resp_keys__() -> dict[str, str]:
         return {'ID': 'catgroup_key', 'DimensionKey': 'dimensionkey', 'Title': 'catgroup', 'Description': 'description', 'ParentID': 'parentid'}
@@ -37,7 +36,7 @@ class Leeftijd(Base):
     leeftijd: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
     categorygroupid: Mapped[int] = mapped_column(ForeignKey('categorygroup.catgroup_key'), nullable=True)
-    categorygroup: Mapped["CategoryGroup"] = relationship(back_populates="leeftijdgroup")
+    categorygroup: Mapped[list["CategoryGroup"]] = relationship("CategoryGroup")
 
     def __resp_keys__() -> dict[str, str]:
         return {'Key': 'leeftijd_key', 'Title': 'leeftijd', 'Description': 'description', 'CategoryGroupID': 'categorygroupid'}
@@ -90,7 +89,7 @@ class Bevolking(Base):
     regio_key: Mapped[str] = mapped_column(ForeignKey('regios.regio_key'), nullable=False)
     datum_key: Mapped[str] = mapped_column(ForeignKey('perioden.datum_key'), nullable=False)
     bevolking_1_januari: Mapped[int] = mapped_column(nullable=True)
-    gemiddelde_bevolking: Mapped[int] = mapped_column(nullable=True)
+    gemiddelde_bevolking: Mapped[float] = mapped_column(nullable=True)
 
     def __resp_keys__() -> dict[str, str]:
         return {'ID': 'id', 'Geslacht': 'geslacht_key', 'Leeftijd': 'leeftijd_key', 'BurgerlijkeStaat': 'burgst_key',
