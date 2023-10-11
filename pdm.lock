@@ -6,7 +6,7 @@ groups = ["default", "test", "linting", "kernel"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:c5e7f615159471befbf334837668038dd2959174f7bb89dcb5669cd743bda665"
+content_hash = "sha256:310870244d913f4080dd1744187fd11bca0836a4b2abed02818ebd98d06a6a43"
 
 [[package]]
 name = "altair"
