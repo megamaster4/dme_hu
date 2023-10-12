@@ -83,7 +83,7 @@ with st.container():
     df_growth = df_growth.with_columns((pl.col('bevolking_1_januari') - pl.col('previous_year')).alias('absolute_growth'))
     
     if radio_rel_abs == 'Relatief':
-        st.bar_chart(data=df_growth.to_pandas(), x='jaar', y='relative_growth', height=600, width=800)
+        st.line_chart(data=df_growth.to_pandas(), x='jaar', y='relative_growth', height=600, width=800)
     elif radio_rel_abs == 'Absoluut':
-        st.bar_chart(data=df_growth.to_pandas(), x='jaar', y='absolute_growth', height=600, width=800)
+        st.line_chart(data=df_growth.to_pandas(), x='jaar', y='absolute_growth', height=600, width=800)
     

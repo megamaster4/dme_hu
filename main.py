@@ -1,15 +1,17 @@
-from pathlib import Path
-from loguru import logger
-from tqdm import tqdm
 import sys
-from streamlit.web import cli as stcli
-import click
+from pathlib import Path
 
-from backend.utils import parse_parquet_to_db, get_data_from_cbs, get_metadata_from_cbs
-from backend.db_tools import DBEngine
+import click
+from loguru import logger
+from streamlit.web import cli as stcli
+from tqdm import tqdm
+
 from backend.config import Settings
-from backend.models import Bevolking, Bodemgebruik, Regios
 from backend.crud import select_table_from_db
+from backend.db_tools import DBEngine
+from backend.models import Bevolking, Bodemgebruik, Regios
+from backend.utils import get_data_from_cbs, get_metadata_from_cbs, parse_parquet_to_db
+
 
 @click.command()
 @click.option('--callapi', is_flag=True, help='Call CBS Statline API to get metadata and data.')

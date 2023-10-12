@@ -15,6 +15,7 @@ from backend.db_tools import DBEngine
 
 db_engine = DBEngine(**Settings().model_dump())
 
+
 @st.cache_data
 def get_data_gemeentes():
     """get_data_gemeentes _summary_
@@ -38,6 +39,7 @@ def get_data_gemeentes():
 
     df = crud.fetch_data(stmt=stmt, db_engine=db_engine, package=DFType.POLARS)
     return df
+
 
 @st.cache_data
 def get_data_gemeentes_bodemgebruik():
@@ -78,6 +80,17 @@ def extract_top5(df: pl.DataFrame, only_active: bool = True) -> pl.DataFrame:
     return df
 
 
+def growth_columns_by_year(df: pl.DataFrame, columns_to_exclude: list[str]) -> pl.DataFrame:
+    use_cols = [col for col in df.columns if col not in columns_to_exclude]
+
+    for column in use_cols:
+        df = df.with_columns((pl.col(column).shift(1)).over('regio').alias(f'{column}_previous_moment'))
+        df = df.with_columns(((pl.col(column) - pl.col(f'{column}_previous_moment'))/pl.col(f'{column}_previous_moment')).alias(f'{column}_growth'))
+        df = df.fill_nan(0)
+
+    return df
+
+
 def divide_columns_by_column(df: pl.DataFrame, divide_by_column: str, columns_to_exclude: list[str]) -> pl.DataFrame:
     # Get a list of column names except the list to exclude
     columns_to_exclude.append(divide_by_column)
@@ -92,13 +105,15 @@ def divide_columns_by_column(df: pl.DataFrame, divide_by_column: str, columns_to
 
 def main():
     st.set_page_config(
-        page_title="Bevolkingsgroei Gemeentes",
+        page_title="Bevolkingsgroei vs Bodemgebruik",
     )
     df_bevolking = get_data_gemeentes()
     df_bodem = get_data_gemeentes_bodemgebruik()
-    devdf = df_bevolking.clone()  
+    devdf_bevolking = df_bevolking.clone()  
+    devdf_bodem = df_bodem.clone()
+    
 
-    st.sidebar.header("Bevolkingsgroei per Gemeente")
+    st.sidebar.header("Bevolkingsgroei vs Bodemgebruik")
     st.markdown(
         """
         ## Bevolkingsgroei per Gemeente
@@ -109,78 +124,44 @@ def main():
         """
     )
 
-    devdf = extract_top5(df=devdf, only_active=True)
-    devdf_max_year = devdf.filter(pl.col('jaar') == pl.col('jaar').max())
-    relatief, absolute = st.tabs(['Top 5 Relatieve Groei', 'Top 5 Absolute Groei'])
+    # devdf_bevolking = extract_top5(df=devdf_bevolking, only_active=True)
+    # devdf_bevolking = devdf_bevolking.filter(pl.col('jaar') == pl.col('jaar').max()).sort('percentage_growth', descending=True).head(5)
 
-    with relatief:
-        st.markdown(
-            """
-            ### Top 5 Relatieve Groei
-            De top 5 gemeentes met de hoogste relatieve groei in de afgelopen 5 jaar:
-            """
-        )
-        
-        df_relatief = devdf_max_year.sort('percentage_growth', descending=True).head(5)
-        chart = alt.Chart(df_relatief).mark_bar().encode(
-            x=alt.X('percentage_growth:Q', axis=alt.Axis(format='%'), stack='zero'),
-            y=alt.Y('regio', sort='-x')
-        ).properties(height=600, width=800)
-        st.altair_chart(chart, use_container_width=True)
+    regios = devdf_bevolking['regio'].to_list()
+    exclude_cols=['regio', 'jaar', 'geslacht', 'catgroup', 'burgerlijkestaat']
+    devdf_bodem = df_bodem.filter(df_bodem['regio'].is_in(regios))
+    devdf_bodem = devdf_bodem.fill_null(strategy='zero')
+    devdf_bodem = growth_columns_by_year(df=devdf_bodem, columns_to_exclude=exclude_cols)
+    devdf_bodem = devdf_bodem[[s.name for s in devdf_bodem if not (s.null_count() == devdf_bodem.height)]]
+    devdf_bodem = devdf_bodem.drop_nulls('bevolking_1_januari_growth')
+    st.dataframe(devdf_bodem.to_pandas())
 
-    with absolute:
-        st.markdown(
-            """
-            ### Top 5 Absolute Groei
-            De top 5 gemeentes met de hoogste absolute groei in de afgelopen 5 jaar:
-            """
-        )
-        df_absolute = devdf_max_year.sort('absolute_growth', descending=True).head(5)
-        chart = alt.Chart(df_absolute).mark_bar().encode(
-            x='absolute_growth',
-            y=alt.Y('regio', sort='-x')
-        ).properties(height=600, width=800)
-        st.altair_chart(chart, use_container_width=True)
+    devdf_bodem = devdf_bodem.select([col for col in devdf_bodem.columns if (col in exclude_cols) or (col.endswith('growth'))])
+    # plot_cols = [col for col in devdf_bodem.columns if (col.endswith('growth'))]
+    st.dataframe(devdf_bodem.to_pandas())
+    use_cols = [col for col in devdf_bodem.columns if col not in exclude_cols]
+    #average growth per year
+    # devdf_bodem = devdf_bodem.group_by('jaar').mean().sort('jaar')
 
-    st.markdown(
-        """
-        Hoe komt het dat de gemeente Amsterdam zo'n grote groei heeft? En waarom is de gemeente Noordwijk zo'n uitschieter qua relatieve groei?
-
-        We gaan het bodemgebruik toevoegen aan zowel de gemeente Amsterdam als Noordwijk om te kijken of we hier een verklaring voor kunnen vinden.
-
-        ## Bodemgebruik Amsterdam en Noordwijk
-        Om een goede vergelijking te kunnen geven, wordt er gekeken naar het relatieve bodemgebruik ten opzichte van het totale oppervlakte van de gemeente.
-        """
-    )
-
-    devdf_bodem = df_bodem.clone()
-    devdf_bodem = devdf_bodem.filter(pl.col('regio').is_in(['Amsterdam', 'Noordwijk']))
-
-    exclude_cols = ['regio', 'jaar', 'bevolking_1_januari', 'geslacht', 'catgroup', 'burgerlijkestaat']
-    df_divided = divide_columns_by_column(devdf_bodem, divide_by_column='totale_oppervlakte', columns_to_exclude=exclude_cols)
-    df_divided = df_divided[[s.name for s in df_divided if not (s.null_count() == df_divided.height)]]
-    df_divided = df_divided.filter(pl.col('jaar') == pl.col('jaar').max())
-
-    df_distribution = df_divided.melt(id_vars='regio', value_name='relative_percentage', value_vars=[col for col in df_divided.columns if (col.startswith('totaal')) and (col.endswith('relative'))])
-    chart_stacked = alt.Chart(df_distribution).mark_bar().encode(
-        x=alt.X('regio:N', axis=alt.Axis(title='Groups')),
-        y=alt.Y('sum(relative_percentage):Q', axis=alt.Axis(format='%'), stack='normalize'),
-        color=alt.Color('variable:N', title='Categories'),
-        order=alt.Order('relative_percentage:N', sort='ascending'),
+    # Calculate the correlation matrix
+    correlation_matrix = devdf_bodem.select(use_cols).corr().with_columns(index=pl.lit(use_cols)).melt(id_vars=['index']).filter((pl.col('index') != pl.col('variable')))
+    correlation_matrix = correlation_matrix.filter(pl.col('variable') == 'bevolking_1_januari_growth')
+    st.dataframe(correlation_matrix.to_pandas())
+    # Create a heatmap for the correlation matrix using Altair
+    heatmap = alt.Chart(correlation_matrix).mark_rect().encode(
+        x='variable:O',
+        y='index:O',
+        color=alt.Color('value:Q', scale=alt.Scale(scheme='redblue'))
     ).properties(
-        title='Verdeling bodemgebruik per Gemeente',
-        height=600,
+        height=800,
         width=800
     )
-    st.altair_chart(chart_stacked, use_container_width=True)
-    
-    st.markdown(
-        """
-        Zo zien we dat de gemeente Amsterdam (absolute groei van 64070 inwoners) een groot deel van het oppervlakte gebruikt voor bebouwing, terwijl de gemeente Noordwijk (relatieve groei van 73,39%) een groot deel van het oppervlakte gebruikt voor bebossing of open natuurgebieden.
-        
+    st.altair_chart(heatmap)
+        # print(devdf_bodem)
 
-        """
-    )
+    # st.line_chart(data=devdf_bodem.to_pandas(), x='jaar', y='bevolking_1_januari_growth', color='regio', height=600, width=800)
+
+
 
 if __name__ == "__main__":
     main()
