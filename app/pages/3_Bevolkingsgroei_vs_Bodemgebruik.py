@@ -3,6 +3,8 @@ import sys
 
 import altair as alt
 import polars as pl
+import pandas as pd
+import numpy as np
 import streamlit as st
 from sqlalchemy import select
 
@@ -85,9 +87,16 @@ def growth_columns_by_year(df: pl.DataFrame, columns_to_exclude: list[str]) -> p
 
     for column in use_cols:
         df = df.with_columns((pl.col(column).shift(1)).over('regio').alias(f'{column}_previous_moment'))
-        df = df.with_columns(((pl.col(column) - pl.col(f'{column}_previous_moment'))/pl.col(f'{column}_previous_moment')).alias(f'{column}_growth'))
+        df = df.with_columns(
+            ((pl.col(column) - pl.col(f'{column}_previous_moment'))/pl.col(f'{column}_previous_moment')).alias(f'{column}_growth')
+        )
         df = df.fill_nan(0)
 
+    # The following code is needed to replace inf values with 0, because of a bug in Polars.
+    # We will replace them using pandas, and convert the dataframe back to polars before returning the dataframe
+    df_pd = df.to_pandas()
+    df_pd.replace([np.inf, -np.inf], 0, inplace=True)
+    df = pl.from_pandas(df_pd)
     return df
 
 
@@ -99,7 +108,6 @@ def divide_columns_by_column(df: pl.DataFrame, divide_by_column: str, columns_to
     # Iterate through the columns and divide by the specified column
     for column in columns_to_divide:
         df = df.with_columns((df[column] / df[divide_by_column]).alias(f'{column}_relative'))
-
     return df
 
 
@@ -137,11 +145,8 @@ def main():
     st.dataframe(devdf_bodem.to_pandas())
 
     devdf_bodem = devdf_bodem.select([col for col in devdf_bodem.columns if (col in exclude_cols) or (col.endswith('growth'))])
-    # plot_cols = [col for col in devdf_bodem.columns if (col.endswith('growth'))]
     st.dataframe(devdf_bodem.to_pandas())
     use_cols = [col for col in devdf_bodem.columns if col not in exclude_cols]
-    #average growth per year
-    # devdf_bodem = devdf_bodem.group_by('jaar').mean().sort('jaar')
 
     # Calculate the correlation matrix
     correlation_matrix = devdf_bodem.select(use_cols).corr().with_columns(index=pl.lit(use_cols)).melt(id_vars=['index']).filter((pl.col('index') != pl.col('variable')))

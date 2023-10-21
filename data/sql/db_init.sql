@@ -116,3 +116,4 @@ CREATE index idx_bevolking_regio_key ON bevolking(regio_key);
 CREATE index idx_bodemgebruik_regio_key ON bodemgebruik(regio_key);
 CREATE index idx_bevolking_datum_key ON bevolking(datum_key);
 CREATE index idx_bodemgebruik_datum_key ON bodemgebruik(datum_key);
+CREATE index idx_bevolking_leeftijd_key ON bevolking(leeftijd_key);
