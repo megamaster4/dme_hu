@@ -1,1 +1,22 @@
-# example-package
+# Instructions
+To run the program, use the main.py script file with the following commands, with their respective usage;
+
+## Usage
+Call CBS Statline API to get metadata and data. The data is stored in a parquet file, located in `data/parquet` folder.
+Use the `--num-processes` flag to specify the number of processes to use for the API calls. The default is 4.
+
+```bash
+python main.py --callapi --num-processes
+```
+
+Process the parquet files to the local postgresql database, which are located in the `data/parquet` folder.
+
+```bash
+python main.py --process-parquet
+```
+
+Run and open the dashboard in the browser. The dashboard is located at `http://localhost:8050/`.
+
+```bash
+python main.py --dashboard
+```
