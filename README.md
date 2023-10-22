@@ -20,3 +20,12 @@ Run and open the dashboard in the browser. The dashboard is located at `http://l
 ```bash
 python main.py --dashboard
 ```
+
+## Postgresql Database
+This project uses a local postgresql database to store the processed data, which is hosted in a docker container. The docker-compose file is located in the `docker` folder. To run the database, use the following command;
+
+```bash
+docker-compose up -d
+```
+
+The database is created using the `db_init.sql` file, which is located in the `data/sql` folder.
