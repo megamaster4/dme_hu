@@ -105,7 +105,7 @@ def main():
         In dit tabblad wordt er gekeken naar de bevolkingsgroei van actieve gemeentes in Nederland. Omdat het voor kan komen dat een gemeente is opgeheven, wordt
         alleen gekeken naar gemeentes die in het jaar 2023 nog actief zijn.
 
-        De top 5 gemeentes met de hoogste relatieve en absolute groei, van het jaar 1988 tot en met 2023, worden hieronder weergegeven.
+        De top 5 gemeentes met de hoogste relatieve en absolute groei, in de afgelopen 5 jaar, worden hieronder weergegeven.
         """
     )
 

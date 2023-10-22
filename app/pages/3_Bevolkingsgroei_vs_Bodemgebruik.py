@@ -4,6 +4,9 @@ import sys
 import altair as alt
 import polars as pl
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn import linear_model
 import numpy as np
 import streamlit as st
 from sqlalchemy import select
@@ -124,16 +127,15 @@ def main():
     st.sidebar.header("Bevolkingsgroei vs Bodemgebruik")
     st.markdown(
         """
-        ## Bevolkingsgroei per Gemeente
-        In dit tabblad wordt er gekeken naar de bevolkingsgroei van actieve gemeentes in Nederland. Omdat het voor kan komen dat een gemeente is opgeheven, wordt
-        alleen gekeken naar gemeentes die in het jaar 2023 nog actief zijn.
-
-        De top 5 gemeentes met de hoogste relatieve en absolute groei, van het jaar 1988 tot en met 2023, worden hieronder weergegeven.
+        ## Bevolkingsgroei vs Bodemgebruik
+        Om te bepalen welke variabelen de grootste invloed hebben op de bevolkingsgroei, is er gekeken naar de correlatie tussen de bevolkingsgroei en de verschillende bodemgebruik categorieën.
+        
+        ### Correlatie tussen bevolkingsgroei en bodemgebruik
+        De correlatie is gemaakt door gebruik te maken van alle features van alle gemeentes, over de periodes waarbij ook het bodemgebruik is gerapporteerd.
+        
+        De onderstaande staafdiagram geeft de correlatie weer tussen de bevolkingsgroei en de verschillende bodemgebruik categorieën, onderverdeeld in hoofdcategorieën en subcategorieën.
         """
     )
-
-    # devdf_bevolking = extract_top5(df=devdf_bevolking, only_active=True)
-    # devdf_bevolking = devdf_bevolking.filter(pl.col('jaar') == pl.col('jaar').max()).sort('percentage_growth', descending=True).head(5)
 
     regios = devdf_bevolking['regio'].to_list()
     exclude_cols=['regio', 'jaar', 'geslacht', 'catgroup', 'burgerlijkestaat']
@@ -142,31 +144,123 @@ def main():
     devdf_bodem = growth_columns_by_year(df=devdf_bodem, columns_to_exclude=exclude_cols)
     devdf_bodem = devdf_bodem[[s.name for s in devdf_bodem if not (s.null_count() == devdf_bodem.height)]]
     devdf_bodem = devdf_bodem.drop_nulls('bevolking_1_januari_growth')
-    st.dataframe(devdf_bodem.to_pandas())
 
     devdf_bodem = devdf_bodem.select([col for col in devdf_bodem.columns if (col in exclude_cols) or (col.endswith('growth'))])
-    st.dataframe(devdf_bodem.to_pandas())
+
+    # Use a clone of the data for model training
+    model_df = devdf_bodem.clone().to_pandas()
+
     use_cols = [col for col in devdf_bodem.columns if col not in exclude_cols]
 
     # Calculate the correlation matrix
     correlation_matrix = devdf_bodem.select(use_cols).corr().with_columns(index=pl.lit(use_cols)).melt(id_vars=['index']).filter((pl.col('index') != pl.col('variable')))
     correlation_matrix = correlation_matrix.filter(pl.col('variable') == 'bevolking_1_januari_growth')
-    st.dataframe(correlation_matrix.to_pandas())
-    # Create a heatmap for the correlation matrix using Altair
-    heatmap = alt.Chart(correlation_matrix).mark_rect().encode(
-        x='variable:O',
-        y='index:O',
-        color=alt.Color('value:Q', scale=alt.Scale(scheme='redblue'))
-    ).properties(
-        height=800,
-        width=800
+
+    # Remove totale oppervlakte from the correlation matrix
+    correlation_matrix = correlation_matrix.filter(~pl.col('index').str.starts_with('totale_'))
+
+    hoofd_categories, sub_categories = st.tabs(['Hoofdcategorieën', 'Subcategorieën'])
+
+    with hoofd_categories:
+        # filter correlation_matrix on hoofdcategorieën
+        correlation_matrix_hoofd = correlation_matrix.filter(pl.col('index').str.starts_with('totaal_'))
+
+        # Create a heatmap for the correlation matrix using Altair
+        heatmap = alt.Chart(correlation_matrix_hoofd).mark_bar().encode(
+            x=alt.X('value', axis=alt.Axis(title='Correlatie'), stack='zero'),
+            y=alt.Y('index:O', sort= '-x')
+        ).properties(
+            title='Correlatie tussen bevolkingsgroei en bodemgebruik',
+            height=500,
+        )
+        st.altair_chart(heatmap, use_container_width=True)
+
+    with sub_categories:
+        # filter correlation_matrix on hoofdcategorieën
+        correlation_matrix_sub = correlation_matrix.filter(~pl.col('index').str.starts_with('totaal_'))
+
+        # Create a heatmap for the correlation matrix using Altair
+        heatmap = alt.Chart(correlation_matrix_sub).mark_bar().encode(
+            x=alt.X('value', axis=alt.Axis(title='Correlatie'), stack='zero'),
+            y=alt.Y('index:O', sort= '-x')
+        ).properties(
+            title='Correlatie tussen bevolkingsgroei en bodemgebruik',
+            height=500,
+        )
+        st.altair_chart(heatmap, use_container_width=True)
+    
+    st.markdown(
+        """
+        Zoals verwacht heeft een groei in woonterrein erg hoge postieve correlatie met de bevolkingsgroei. Maar ook een groei in sportterrein en wegverkeersterrein hebben beide een correlatie van boven de 0.8.
+
+        ## Voorspellen bevolkingsgroei
+        Om de bevolkingsgroei te voorspellen, wordt er gebruik gemaakt van verschillende soort modellen. De features die gebruikt worden zijn de bodemgebruik categorieën met een correlatie van boven de 0.5.
+        """
     )
-    st.altair_chart(heatmap)
-        # print(devdf_bodem)
+    correlation_matrix_sub = correlation_matrix_sub.filter(pl.col('value') > 0.5)
+    st.dataframe(correlation_matrix_sub.to_pandas(), use_container_width=True)
+    
+    use_cols_corr = correlation_matrix_sub['index'].to_list()
+    use_cols_corr.extend(['bevolking_1_januari_growth', 'jaar'])
+    print(use_cols_corr)
+    # use_cols_corr.extend(exclude_cols)
+    model_df = model_df.loc[:, use_cols_corr]
+    model_df = model_df.set_index('jaar')
 
-    # st.line_chart(data=devdf_bodem.to_pandas(), x='jaar', y='bevolking_1_januari_growth', color='regio', height=600, width=800)
+    # Split the data into train and test sets
+    X = model_df[[col for col in model_df.columns if col not in ['bevolking_1_januari_growth', 'jaar']]]
+    y = model_df['bevolking_1_januari_growth']
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
+    linearModel, svmModel = st.tabs(['Linear Regression', 'Support Vector Machine'])
+
+    with linearModel:
+        reg = linear_model.LinearRegression()
+        reg.fit(X_train, y_train)
+
+        # Predict the test set
+        y_pred = reg.predict(X_test)
+        r2_score = reg.score(X_test, y_test)
+
+        st.markdown(
+        f"""
+        ### Linear Regression
+        De score van het lineare model is: {r2_score}
+        
+        """
+        )
+
+    with svmModel:
+        reg = svm.SVR()
+        reg.fit(X_train, y_train)
+
+        # Predict the test set
+        y_pred = reg.predict(X_test)
+        r2_score = reg.score(X_test, y_test)
+
+        st.markdown(
+        f"""
+        ### Support Vector Machine
+        De score van het SVM model is: {r2_score}
+        
+        """
+        )
+
+    # # create a Pandas DataFrame with the predicted and actual values
+    # df_actual = pd.DataFrame({'value': y_test, 'year': y_test.index, 'type': 'actual'})
+    # df_pred = pd.DataFrame({'value': y_pred, 'year': y_test.index, 'type': 'predicted'})
+    # df = pd.concat([df_actual, df_pred], ignore_index=True)
+
+    # # create a scatter plot of the predicted and actual values
+    # scatter_plot = alt.Chart(df).mark_point().encode(
+    #     x=alt.X('year', scale=alt.Scale(domain=[1996, 2020])),
+    #     y='value',
+    #     color='type'
+    # )
+
+    # st.altair_chart(scatter_plot, use_container_width=True)
+    
 
 if __name__ == "__main__":
     main()
