@@ -1,10 +1,10 @@
-import os
+from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
 from multiprocessing import Process, Value
 from typing import Union
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pandas as pd
 import polars as pl

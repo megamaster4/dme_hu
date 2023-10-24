@@ -1,10 +1,10 @@
 import streamlit as st
 import sys
-import os
+from pathlib import Path
 import polars as pl
 
 # Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 st.set_page_config(
     page_title="Project Introduction",

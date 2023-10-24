@@ -1,18 +1,17 @@
-import os
+from pathlib import Path
 import sys
 
 import altair as alt
-import polars as pl
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn import svm
-from sklearn import linear_model
 import numpy as np
+import pandas as pd
+import polars as pl
 import streamlit as st
+from sklearn import linear_model, svm
+from sklearn.model_selection import train_test_split
 from sqlalchemy import select
 
 # Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from backend import crud, models
 from backend.config import DFType, Settings
@@ -221,6 +220,7 @@ def main():
 
         # Predict the test set
         y_pred = reg.predict(X_test)
+        print(X_test)
         r2_score = reg.score(X_test, y_test)
 
         st.markdown(
@@ -229,6 +229,7 @@ def main():
         De score van het lineare model is: {r2_score}
         
         """
+        # st.dataframe()
         )
 
     with svmModel:
