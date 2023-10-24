@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xml:base="http://opendata.cbs.nl/ODataFeed/OData/03759ned" xmlns="http://www.w3.org/2005/Atom" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:georss="http://www.georss.org/georss" xmlns:gml="http://www.opengis.net/gml">
+  <id>https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat</id>
+  <title type="text">BurgerlijkeStaat</title>
+  <updated>2023-05-26T02:00:00+02:00</updated>
+  <link rel="self" title="BurgerlijkeStaat" href="https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat" />
+  <entry>
+    <id>https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('T001019')</id>
+    <category term="Cbs.OData.Category" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="self" href="https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('T001019')" />
+    <title />
+    <updated>2023-05-26T02:00:00+02:00</updated>
+    <author>
+      <name />
+    </author>
+    <content type="application/xml">
+      <m:properties>
+        <d:Key>T001019</d:Key>
+        <d:Title>Totaal burgerlijke staat</d:Title>
+        <d:Description>Burgerlijke staat: &#xD;
+Formele positie van een persoon waarbij wordt verwezen naar het huwelijk en het geregistreerd partnerschap. &#xD;
+&#xD;
+Huwelijk: &#xD;
+Wettelijke verbintenis tot het samenleven van twee personen. Sinds april 2001 staat het huwelijk ook open voor personen van hetzelfde geslacht. &#xD;
+&#xD;
+Geregistreerd partnerschap: &#xD;
+Een op het huwelijk lijkende relatie tussen twee personen van gelijk of van verschillend geslacht, vastgelegd in een akte van de Burgerlijke Stand. Per 1 januari 1998 is in Nederland het geregistreerd partnerschap ingevoerd.</d:Description>
+        <d:CategoryGroupID m:null="true" />
+      </m:properties>
+    </content>
+  </entry>
+  <entry>
+    <id>https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('1010%20%20%20')</id>
+    <category term="Cbs.OData.Category" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="self" href="https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('1010%20%20%20')" />
+    <title />
+    <updated>2023-05-26T02:00:00+02:00</updated>
+    <author>
+      <name />
+    </author>
+    <content type="application/xml">
+      <m:properties>
+        <d:Key xml:space="preserve">1010   </d:Key>
+        <d:Title>Ongehuwd</d:Title>
+        <d:Description>Vanaf 2010: burgerlijke staat die aangeeft dat een persoon nog nooit een huwelijk heeft gesloten of een geregistreerd partnerschap is aangegaan.&#xD;
+1998 tot 2010: burgerlijke staat die aangeeft dat een persoon nog nooit een huwelijk heeft gesloten of een geregistreerd partnerschap heeft.&#xD;
+Omdat in de periode 1998 tot 2010 niet alle burgerlijke staten beschikbaar zijn in de bronbestanden die het CBS gebruikt, zijn de burgerlijke staten 'verweduwd na partnerschap' en 'gescheiden na partnerschap' in deze statistiek binnen deze periode genegeerd. Voor deze statistiek betekent dit dat de burgerlijke staat van vóór het partnerschap is gebruikt. Dat was meestal ongehuwd.&#xD;
+Tot 1998: burgerlijke staat die aangeeft dat een persoon nog nooit een huwelijk heeft gesloten.&#xD;
+&#xD;
+Huwelijk:&#xD;
+Wettelijke verbintenis tot het samenleven van twee personen.&#xD;
+Sinds april 2001 staat het huwelijk ook open voor personen van hetzelfde geslacht.&#xD;
+&#xD;
+Geregistreerd partnerschap:&#xD;
+Een op het huwelijk lijkende relatie tussen twee personen van gelijk of van verschillend geslacht, vastgelegd in een akte van de Burgerlijke Stand. Per 1 januari 1998 is in Nederland het geregistreerd partnerschap ingevoerd.</d:Description>
+        <d:CategoryGroupID m:null="true" />
+      </m:properties>
+    </content>
+  </entry>
+  <entry>
+    <id>https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('1020%20%20%20')</id>
+    <category term="Cbs.OData.Category" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="self" href="https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('1020%20%20%20')" />
+    <title />
+    <updated>2023-05-26T02:00:00+02:00</updated>
+    <author>
+      <name />
+    </author>
+    <content type="application/xml">
+      <m:properties>
+        <d:Key xml:space="preserve">1020   </d:Key>
+        <d:Title>Gehuwd</d:Title>
+        <d:Description>Vanaf 1998: wettig gehuwd plus partnerschap.&#xD;
+Tot 1998: wettig gehuwd.&#xD;
+&#xD;
+Wettig gehuwd:&#xD;
+Burgerlijke staat die ontstaat na sluiting van een huwelijk. Inclusief personen die zijn gescheiden van tafel en bed, want zij blijven formeel gehuwd.&#xD;
+&#xD;
+Partnerschap:&#xD;
+Burgerlijke staat die ontstaat na het aangaan van een geregistreerd partnerschap.&#xD;
+&#xD;
+Huwelijk:&#xD;
+Wettelijke verbintenis tot het samenleven van twee personen.&#xD;
+Sinds april 2001 staat het huwelijk ook open voor personen van hetzelfde geslacht.&#xD;
+&#xD;
+Geregistreerd partnerschap:&#xD;
+Een op het huwelijk lijkende relatie tussen twee personen van gelijk of van verschillend geslacht, vastgelegd in een akte van de Burgerlijke Stand. Per 1 januari 1998 is in Nederland het geregistreerd partnerschap ingevoerd.</d:Description>
+        <d:CategoryGroupID m:null="true" />
+      </m:properties>
+    </content>
+  </entry>
+  <entry>
+    <id>https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('1050%20%20%20')</id>
+    <category term="Cbs.OData.Category" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="self" href="https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('1050%20%20%20')" />
+    <title />
+    <updated>2023-05-26T02:00:00+02:00</updated>
+    <author>
+      <name />
+    </author>
+    <content type="application/xml">
+      <m:properties>
+        <d:Key xml:space="preserve">1050   </d:Key>
+        <d:Title>Verweduwd</d:Title>
+        <d:Description>Vanaf 2010: verweduwd na wettig huwelijk plus verweduwd na partnerschap.&#xD;
+Tot 2010: verweduwd na wettig huwelijk.&#xD;
+Omdat in de periode 1998 tot 2010 niet alle burgerlijke staten beschikbaar zijn in de bronbestanden die het CBS gebruikt, is 'verweduwd na partnerschap' in deze statistiek binnen deze periode niet meegeteld.&#xD;
+&#xD;
+Verweduwd na wettig huwelijk:&#xD;
+Burgerlijke staat die ontstaat na ontbinding van een wettig huwelijk door overlijden van de partner.&#xD;
+&#xD;
+Verweduwd na partnerschap:&#xD;
+Burgerlijke staat die ontstaat na ontbinding van een geregistreerd partnerschap door overlijden van de partner.&#xD;
+&#xD;
+Huwelijk:&#xD;
+Wettelijke verbintenis tot het samenleven van twee personen.&#xD;
+Sinds april 2001 staat het huwelijk ook open voor personen van hetzelfde geslacht.&#xD;
+&#xD;
+Geregistreerd partnerschap:&#xD;
+Een op het huwelijk lijkende relatie tussen twee personen van gelijk of van verschillend geslacht, vastgelegd in een akte van de Burgerlijke Stand. Per 1 januari 1998 is in Nederland het geregistreerd partnerschap ingevoerd.</d:Description>
+        <d:CategoryGroupID m:null="true" />
+      </m:properties>
+    </content>
+  </entry>
+  <entry>
+    <id>https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('1080%20%20%20')</id>
+    <category term="Cbs.OData.Category" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
+    <link rel="self" href="https://opendata.cbs.nl/ODataFeed/OData/03759ned/BurgerlijkeStaat('1080%20%20%20')" />
+    <title />
+    <updated>2023-05-26T02:00:00+02:00</updated>
+    <author>
+      <name />
+    </author>
+    <content type="application/xml">
+      <m:properties>
+        <d:Key xml:space="preserve">1080   </d:Key>
+        <d:Title>Gescheiden</d:Title>
+        <d:Description>Vanaf 2010: gescheiden na wettig huwelijk plus gescheiden na partnerschap.&#xD;
+Tot 2010: gescheiden na wettig huwelijk.&#xD;
+Omdat in de periode 1998 tot 2010 niet alle burgerlijke staten beschikbaar zijn in de bronbestanden die het CBS gebruikt, is 'gescheiden na partnerschap' in deze statistiek binnen deze periode niet meegeteld.&#xD;
+&#xD;
+Gescheiden na wettig huwelijk:&#xD;
+Burgerlijke staat die ontstaat na ontbinding van een wettig huwelijk door echtscheiding. Exclusief personen die zijn gescheiden van tafel en bed, want zij blijven formeel gehuwd.&#xD;
+&#xD;
+Gescheiden na partnerschap:&#xD;
+Burgerlijke staat die ontstaat na ontbinding van een geregistreerd partnerschap anders dan door het overlijden van de partner.&#xD;
+&#xD;
+Huwelijk:&#xD;
+Wettelijke verbintenis tot het samenleven van twee personen. Sinds april 2001 staat het huwelijk ook open voor personen van hetzelfde&#xD;
+geslacht.&#xD;
+&#xD;
+Geregistreerd partnerschap:&#xD;
+Een op het huwelijk lijkende relatie tussen twee personen van gelijk of van verschillend geslacht, vastgelegd in een akte van de Burgerlijke Stand. Per 1 januari 1998 is in Nederland het geregistreerd partnerschap ingevoerd.</d:Description>
+        <d:CategoryGroupID m:null="true" />
+      </m:properties>
+    </content>
+  </entry>
+</feed>
