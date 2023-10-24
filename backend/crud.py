@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Union
 
 import pandas as pd
@@ -14,8 +14,16 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from backend.config import DFType
 from backend.db_tools import DBEngine
-from backend.models import (Bevolking, Bodemgebruik, Burgstaat, CategoryGroup,
-                            Geslacht, Leeftijd, Perioden, Regios)
+from backend.models import (
+    Bevolking,
+    Bodemgebruik,
+    Burgstaat,
+    CategoryGroup,
+    Geslacht,
+    Leeftijd,
+    Perioden,
+    Regios,
+)
 
 
 def fetch_data(stmt: select, db_engine: DBEngine, package: DFType = DFType.POLARS) -> Union[pl.DataFrame, pd.DataFrame]:

@@ -1,7 +1,7 @@
-from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
 from multiprocessing import Process, Value
+from pathlib import Path
 from typing import Union
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -13,10 +13,18 @@ from loguru import logger
 
 from backend.crud import upsert
 from backend.db_tools import DBEngine
-from backend.models import (Bevolking, Bodemgebruik, Burgstaat, CategoryGroup,
-                            Geslacht, Leeftijd, Perioden, Regios)
+from backend.models import (
+    Bevolking,
+    Bodemgebruik,
+    Burgstaat,
+    CategoryGroup,
+    Geslacht,
+    Leeftijd,
+    Perioden,
+    Regios,
+)
 
-total_rows_processed = Value('i', 52_020_000)
+total_rows_processed = Value('i', 0)
 
 
 def parse_response_metadata(url: str, object: Union[Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios]) -> list[Union[Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden, Regios]]:
@@ -36,7 +44,6 @@ def parse_response_metadata(url: str, object: Union[Burgstaat, CategoryGroup, Ge
 
 def parse_response_typed_dataset(chunk_size, object: Union[Bevolking, Bodemgebruik], url: str) -> None:
     """Parse typed datasets XML response from CBS Statline API."""
-
     global total_rows_processed
 
     row = {}
