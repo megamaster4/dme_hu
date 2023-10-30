@@ -1,7 +1,6 @@
 import streamlit as st
 import sys
 from pathlib import Path
-import polars as pl
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -42,8 +41,6 @@ st.markdown(
 st.sidebar.success("Selecteer een tabblad om te beginnen")
 
 # db_engine = DBEngine(**Settings().model_dump())
-
-
 
 
 # @st.cache_data

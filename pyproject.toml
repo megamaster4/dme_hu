@@ -35,3 +35,9 @@ linting = [
 kernel = [
     "ipykernel>=6.25.2",
 ]
+
+[tool.ruff]
+ignore = [
+  "E402",
+  "E501",
+]

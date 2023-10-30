@@ -4,9 +4,10 @@ services:
     image: postgres:latest
     container_name: postgres-container
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: ${DBNAME}
+      POSTGRES_USER: ${DBUSER}
+      POSTGRES_PASSWORD: ${DBPASS}
     volumes:
       - ./data/db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DBPORT}:${DBPORT}"
