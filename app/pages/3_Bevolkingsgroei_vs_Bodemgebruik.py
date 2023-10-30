@@ -199,12 +199,37 @@ def main():
     correlation_matrix_sub = correlation_matrix_sub.filter(pl.col('value') > 0.5)
     st.dataframe(correlation_matrix_sub.to_pandas(), use_container_width=True)
     
+
+
+
     use_cols_corr = correlation_matrix_sub['index'].to_list()
     use_cols_corr.extend(['bevolking_1_januari_growth', 'jaar'])
-    print(use_cols_corr)
-    # use_cols_corr.extend(exclude_cols)
+
     model_df = model_df.loc[:, use_cols_corr]
     model_df = model_df.set_index('jaar')
+
+    model_df_avg = model_df.groupby('jaar').mean()
+
+    model_df_melted = model_df_avg.reset_index().melt(id_vars=['jaar'])
+    print(model_df_melted)
+    # Plot the average growth per year with altair
+    line_chart = alt.Chart(model_df_melted).mark_line().encode(
+        x='jaar:O',
+        y='value:Q',
+        color='variable:N',
+    ).properties(
+        title='Gemiddelde bevolkingsgroei per jaar',
+        height=500,
+    )
+
+    # ).mark_line().encode(
+    #     y='woonterrein_growth'
+    # ).mark_line().encode(
+    #     y='sportterrein_growth'
+    # )
+
+
+    st.altair_chart(line_chart, use_container_width=True)
 
     # Split the data into train and test sets
     X = model_df[[col for col in model_df.columns if col not in ['bevolking_1_januari_growth', 'jaar']]]
@@ -220,7 +245,7 @@ def main():
 
         # Predict the test set
         y_pred = reg.predict(X_test)
-        print(X_test)
+        # print(X_test)
         r2_score = reg.score(X_test, y_test)
 
         st.markdown(
