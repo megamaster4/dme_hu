@@ -21,10 +21,15 @@ db_engine = DBEngine(**Settings().model_dump())
 
 @st.cache_data
 def get_data_gemeentes():
-    """get_data_gemeentes _summary_
+    """
+    This function returns the data for the gemeentes, filtered on the following criteria:
+    - Regio: Gemeentes
+    - Geslacht: Totaal mannen en vrouwen
+    - CategoryGroup: Totaal
+    - Burgstaat: Totaal burgerlijke staat
 
     Returns:
-        _type_: _description_
+        df: A polars dataframe containing the data for the gemeentes.
     """
     stmt = (
         select(
@@ -64,10 +69,15 @@ def get_data_gemeentes():
 
 @st.cache_data
 def get_data_gemeentes_bodemgebruik():
-    """get_data_gemeentes_bodemgebruik _summary_
+    """
+    This function returns the data for the gemeentes joined with the bodemgebruik data, filtered on the following criteria:
+    - Regio: Gemeentes
+    - Geslacht: Totaal mannen en vrouwen
+    - CategoryGroup: Totaal
+    - Burgstaat: Totaal burgerlijke staat
 
     Returns:
-        _type_: _description_
+        df: A polars dataframe containing the data for the gemeentes.
     """
     stmt = (
         select(

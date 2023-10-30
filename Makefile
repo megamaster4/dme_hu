@@ -4,6 +4,7 @@ DEFAULT_GOAL := help
 
 APP_DIR=$(CURDIR)/app
 BACKEND_DIR=$(CURDIR)/backend
+TEST_DIR=$(CURDIR)/tests
 
 help:
 	@echo "make init"
@@ -39,7 +40,7 @@ test:
 	pdm run pytest
 
 format:
-	pdm run black $(APP_DIR) $(BACKEND_DIR)
+	pdm run black $(APP_DIR) $(BACKEND_DIR) $(TEST_DIR)
 
 lint:
-	pdm run ruff --fix main.py $(APP_DIR) $(BACKEND_DIR)
+	pdm run ruff --fix main.py $(APP_DIR) $(BACKEND_DIR) $(TEST_DIR)

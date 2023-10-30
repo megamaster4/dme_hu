@@ -7,7 +7,7 @@ from tqdm import tqdm
 from backend.config import Settings
 from backend.crud import select_table_from_db
 from backend.db_tools import DBEngine
-from backend.models import Bevolking, Bodemgebruik, Regios
+from backend.models import Bevolking, Bodemgebruik, Regios, Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden
 from backend.utils import get_data_from_cbs, get_metadata_from_cbs, parse_parquet_to_db
 
 
@@ -31,7 +31,16 @@ def main(callapi: bool, num_processes: int, process_parquet: str, dashboard: boo
 
     if callapi:
         # Get metadata from CBS Statline API and upsert into database
-        get_metadata_from_cbs(db_engine=db_engine)
+        models_dict = {
+            "BurgerlijkeStaat": Burgstaat,
+            "CategoryGroups": CategoryGroup,
+            "Geslacht": Geslacht,
+            "Leeftijd": Leeftijd,
+            "Perioden": Perioden,
+            "RegioS": Regios,
+        }
+        
+        get_metadata_from_cbs(db_engine=db_engine, models_dict=models_dict)
         # Get data from CBS Statline API and save as parquet files
         get_data_from_cbs(
             object=Bevolking,

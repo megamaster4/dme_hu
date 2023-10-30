@@ -96,18 +96,25 @@ def find_in_schema(entry: ET.Element, key: str) -> Union[str, None]:
     return param.text
 
 
-def get_metadata_from_cbs(db_engine: DBEngine) -> None:
+def get_metadata_from_cbs(
+    db_engine: DBEngine,
+    models_dict: dict[
+        str,
+        Union[
+            Burgstaat,
+            Perioden,
+            Bevolking,
+            Bodemgebruik,
+            Regios,
+            CategoryGroup,
+            Geslacht,
+            Leeftijd,
+        ],
+    ],
+) -> None:
     # Get data from CBS Statline API and upsert into database
-    data_dict = {
-        "BurgerlijkeStaat": Burgstaat,
-        "CategoryGroups": CategoryGroup,
-        "Geslacht": Geslacht,
-        "Leeftijd": Leeftijd,
-        "Perioden": Perioden,
-        "RegioS": Regios,
-    }
 
-    for key, value in data_dict.items():
+    for key, value in models_dict.items():
         logger.info(f"Getting data from {key}...")
         data = parse_response_metadata(
             url=f"https://opendata.cbs.nl/ODataFeed/odata/03759ned/{key}", object=value
