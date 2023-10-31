@@ -34,15 +34,16 @@ init:
 	@echo "Creating data folder..."
 	mkdir "$(DB_DIR)"
 	mkdir "$(PAR_DIR)"
+	
+call_api:
 	@echo "Starting database container..."
 	docker-compose up -d
-
-
-call_api:
 	@echo "Processing calling CBS API..."
 	pdm run python $(CURDIR)/main.py --callapi --num-processes $(NUM_PROCESSES)
 
 process_parquet:
+	@echo "Starting database container..."
+	docker-compose up -d
 	@echo "Processing data..."
 	pdm run python $(CURDIR)/main.py --process-parquet $(PAR_DIR)
 
@@ -51,6 +52,8 @@ process_all:
 	make process_parquet
 
 run:
+	@echo "Starting database container..."
+	docker-compose up -d
 	@echo "Running dashboard..."
 	pdm run streamlit run $(APP_DIR)/Project_Introduction.py
 

@@ -1,23 +1,59 @@
 # Instructions
 To run the program, use the makefile commands. The makefile is located in the root folder. 
 
+## Requirements
+The following requirements are needed to run the program;
+- Docker, either the desktop version or the CLI version
+- Python 3.11 or higher
+- PDM
+- Make
+
+## Setup
+To setup the program, run the following command;
+```
+make init
+```
+This will install the required packages and creates the required folders. Make sure to adjust the `.env` file to your liking, this will contain the database credentials.
+
 ## Usage
 The makefile abstract certain commands for ease of use. The following commands are available, described below but also under the `help` command;
-- `help`
-    -  Displays the help menu
-- `init`
-    -  Initializes the project; Installs the required packages, creates the database container and creates the required folders.
-- `call_api [NUM_PROCESSES=4]`
-    -  Calls the API and saves the data to the `data/parquet` folder. You can specify the number of processes to use by using the `NUM_PROCESSES` variable, default is 4.
-- `process_parquet`
-    -  Runs the database container and processes the parquet files to the database.
-- `process_all [NUM_PROCESSES=4]`
-    -  Calls the API, processes the parquet files and saves the data to the database, factually a combination of the `call_api` and `process_parquet` commands. You can specify the number of processes to use by using the `NUM_PROCESSES` variable, default is 4.
-- `run`
-    -  Starts the database container and runs the streamlit dashboard.
-- `test`
-    -  Runs the tests.
-- `format`
-    -  Formats the code using black.
-- `lint`
-    -  Lints the code using ruff.
+```
+make help
+```
+Displays the help menu
+```
+make init
+```
+Initializes the project; Installs the required packages and creates the required folders.
+```
+make call_api [NUM_PROCESSES=4]
+```
+Calls the API and saves the data to the `data/parquet` folder. You can specify the number of processes to use by using the `NUM_PROCESSES` variable, default is 4.
+```
+make process_parquet
+```
+Runs the database container and processes the parquet files to the database.
+```
+make process_all [NUM_PROCESSES=4]
+```
+Calls the API, processes the parquet files and saves the data to the database, factually a combination of the `call_api` and `process_parquet` commands. You can specify the number of processes to use by using the `NUM_PROCESSES` variable, default is 4.
+```
+make run
+```
+Starts the database container and runs the streamlit dashboard.
+```
+make test
+```
+Runs the tests.
+```
+make format
+```
+Formats the code using black.
+```
+make lint
+```
+Lints the code using ruff.
+
+## Common issues
+### Docker
+It might be possible that when running commands that will startup the database container, such as `make process_parquet` or `make run`, you will get an error that `psycopg2` can't connect to the database. This is because the database container is not fully started yet. To fix this, run the command again. 
