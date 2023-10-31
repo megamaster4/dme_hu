@@ -31,7 +31,7 @@ from backend.utils import get_data_from_cbs, get_metadata_from_cbs, parse_parque
 )
 @click.option(
     "--process-parquet",
-    default="data/parquet",
+    default="",
     help="Path to folder with parquet files to process and upsert into database.",
 )
 def main(callapi: bool, num_processes: int, process_parquet: str):
