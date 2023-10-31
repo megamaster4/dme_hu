@@ -1,4 +1,4 @@
-.PHONY: help init run test format lint
+.PHONY: help init call_api process_parquet process_all run test format lint
 
 DEFAULT_GOAL := help
 
@@ -7,6 +7,7 @@ DB_DIR=$(CURDIR)/data/db_data
 PAR_DIR=$(CURDIR)/data/parquet
 BACKEND_DIR=$(CURDIR)/backend
 TEST_DIR=$(CURDIR)/tests
+NUM_PROCESSES=4
 
 
 help:
@@ -35,11 +36,17 @@ init:
 	mkdir "$(PAR_DIR)"
 
 
-process_data:
+call_api:
 	@echo "Processing calling CBS API..."
-	pdm run python $(CURDIR)/main.py --callapi --num-processes $(num_processes)
+	pdm run python $(CURDIR)/main.py --callapi --num-processes $(NUM_PROCESSES)
+
+process_parquet:
 	@echo "Processing data..."
-	pdm run python $(CURDIR)/main.py --process-parquet
+	pdm run python $(CURDIR)/main.py --process-parquet $(PAR_DIR)
+
+process_all:
+	make call_api
+	make process_parquet
 
 run:
 	@echo "Starting database container..."
