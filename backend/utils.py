@@ -1,6 +1,6 @@
 import sys
 import xml.etree.ElementTree as ET
-from multiprocessing import Process, Value
+from multiprocessing import Process, Value, Lock
 from pathlib import Path
 from typing import Union
 
@@ -25,6 +25,7 @@ from backend.models import (
 )
 
 total_rows_processed = Value("i", 0)
+lock = Lock()
 
 
 def parse_response_metadata(
@@ -49,7 +50,7 @@ def parse_response_typed_dataset(
     chunk_size, object: Union[Bevolking, Bodemgebruik], url: str
 ) -> None:
     """Parse typed datasets XML response from CBS Statline API."""
-    global total_rows_processed
+    global total_rows_processed, lock
 
     row = {}
     lijst = []
@@ -57,7 +58,7 @@ def parse_response_typed_dataset(
     save_dir = Path(f"data/parquet/{object.__tablename__}")
     save_dir.mkdir(parents=True, exist_ok=True)
     while True:
-        with total_rows_processed.get_lock():
+        with lock:
             skiprows = total_rows_processed.value
             total_rows_processed.value += chunk_size
 
