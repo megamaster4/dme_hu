@@ -1,5 +1,5 @@
-# Instructions
-To run the program, use the makefile commands. The makefile is located in the root folder. 
+# Introduction
+This project downloads data from the [CBS Statline API]() and provides an analyis of growth of the Dutch population in contrast to the growth of a specific type of ground usage, such as agriculture or living space. The data is firstly downloaded and saved as a .parquet file in the `data/parquet` folder. Secondly, the data is processed and saved to a PostgreSQL database. Lastly, a streamlit dashboard is provided to visualize the data and also validate the created models.
 
 ## Requirements
 The following requirements are needed to run the program;

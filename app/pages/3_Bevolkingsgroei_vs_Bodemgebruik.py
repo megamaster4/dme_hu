@@ -5,7 +5,7 @@ import altair as alt
 import numpy as np
 import polars as pl
 import streamlit as st
-from sklearn import linear_model, svm
+from sklearn import linear_model, svm, tree
 from sklearn.model_selection import train_test_split
 from sqlalchemy import select
 
@@ -351,7 +351,9 @@ def main():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    linearModel, svmModel = st.tabs(["Linear Regression", "Support Vector Machine"])
+    linearModel, svmModel, decisiontreeModel = st.tabs(
+        ["Linear Regression", "Support Vector Machine", "Decision Tree Regressor"]
+    )
 
     with linearModel:
         reg = linear_model.LinearRegression()
@@ -368,7 +370,6 @@ def main():
         De score van het lineare model is: {r2_score}
         
         """
-            # st.dataframe()
         )
 
     with svmModel:
@@ -383,6 +384,22 @@ def main():
             f"""
         ### Support Vector Machine
         De score van het SVM model is: {r2_score}
+        
+        """
+        )
+
+    with decisiontreeModel:
+        reg = tree.DecisionTreeRegressor()
+        reg.fit(X_train, y_train)
+
+        # Predict the test set
+        reg.predict(X_test)
+        r2_score = reg.score(X_test, y_test)
+
+        st.markdown(
+            f"""
+        ### Decision Tree Regressor
+        De score van het Decision Tree Regressor model is: {r2_score}
         
         """
         )
