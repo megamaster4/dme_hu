@@ -47,10 +47,9 @@ def parse_response_metadata(
 
 
 def parse_response_typed_dataset(
-    chunk_size, object: Union[Bevolking, Bodemgebruik], url: str
+    chunk_size, object: Union[Bevolking, Bodemgebruik], url: str, total_rows_processed: Value
 ) -> None:
     """Parse typed datasets XML response from CBS Statline API."""
-    global total_rows_processed, lock
 
     row = {}
     lijst = []
@@ -58,7 +57,7 @@ def parse_response_typed_dataset(
     save_dir = Path(f"data/parquet/{object.__tablename__}")
     save_dir.mkdir(parents=True, exist_ok=True)
     while True:
-        with lock:
+        with total_rows_processed.get_lock():
             skiprows = total_rows_processed.value
             total_rows_processed.value += chunk_size
 
@@ -134,10 +133,11 @@ def get_data_from_cbs(
     # Create a list of processes
     processes = []
     logger.info(f"Starting {num_processes} processes...")
+    total_rows_processed = Value("i", 0)
     for i in range(num_processes):
         # Create a new process and start it
         process = Process(
-            target=parse_response_typed_dataset, args=(chunk_size, object, url)
+            target=parse_response_typed_dataset, args=(chunk_size, object, url, total_rows_processed)
         )
         processes.append(process)
         process.start()
