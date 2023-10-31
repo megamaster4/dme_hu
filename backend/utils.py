@@ -47,7 +47,10 @@ def parse_response_metadata(
 
 
 def parse_response_typed_dataset(
-    chunk_size, object: Union[Bevolking, Bodemgebruik], url: str, total_rows_processed: Value
+    chunk_size,
+    object: Union[Bevolking, Bodemgebruik],
+    url: str,
+    total_rows_processed: Value,
 ) -> None:
     """Parse typed datasets XML response from CBS Statline API."""
 
@@ -137,7 +140,8 @@ def get_data_from_cbs(
     for i in range(num_processes):
         # Create a new process and start it
         process = Process(
-            target=parse_response_typed_dataset, args=(chunk_size, object, url, total_rows_processed)
+            target=parse_response_typed_dataset,
+            args=(chunk_size, object, url, total_rows_processed),
         )
         processes.append(process)
         process.start()

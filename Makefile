@@ -61,7 +61,7 @@ test:
 	pdm run pytest
 
 format:
-	pdm run black $(APP_DIR) $(BACKEND_DIR) $(TEST_DIR)
+	pdm run black main.py $(APP_DIR) $(BACKEND_DIR) $(TEST_DIR)
 
 lint:
 	pdm run ruff --fix main.py $(APP_DIR) $(BACKEND_DIR) $(TEST_DIR)

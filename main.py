@@ -7,7 +7,16 @@ from tqdm import tqdm
 from backend.config import Settings
 from backend.crud import select_table_from_db
 from backend.db_tools import DBEngine
-from backend.models import Bevolking, Bodemgebruik, Regios, Burgstaat, CategoryGroup, Geslacht, Leeftijd, Perioden
+from backend.models import (
+    Bevolking,
+    Bodemgebruik,
+    Regios,
+    Burgstaat,
+    CategoryGroup,
+    Geslacht,
+    Leeftijd,
+    Perioden,
+)
 from backend.utils import get_data_from_cbs, get_metadata_from_cbs, parse_parquet_to_db
 
 
@@ -39,17 +48,17 @@ def main(callapi: bool, num_processes: int, process_parquet: str):
             "Perioden": Perioden,
             "RegioS": Regios,
         }
-        
+
         get_metadata_from_cbs(db_engine=db_engine, models_dict=models_dict)
         # Get data from CBS Statline API and save as parquet files
         get_data_from_cbs(
-            object=Bevolking,
-            url="https://opendata.cbs.nl/ODataFeed/odata/03759ned/TypedDataSet",
+            object=Bodemgebruik,
+            url="https://opendata.cbs.nl/ODataFeed/odata/70262ned/TypedDataSet",
             num_processes=num_processes,
         )
         get_data_from_cbs(
-            object=Bodemgebruik,
-            url="https://opendata.cbs.nl/ODataFeed/odata/70262ned/TypedDataSet",
+            object=Bevolking,
+            url="https://opendata.cbs.nl/ODataFeed/odata/03759ned/TypedDataSet",
             num_processes=num_processes,
         )
 
@@ -60,8 +69,8 @@ def main(callapi: bool, num_processes: int, process_parquet: str):
 
         # Parse parquet files and upsert into database
         folders = {
-            Bevolking: Path(f"{process_parquet}/bevolking"),
             Bodemgebruik: Path(f"{process_parquet}/bodemgebruik"),
+            Bevolking: Path(f"{process_parquet}/bevolking"),
         }
         for object, folder in folders.items():
             parquetFiles = folder.rglob("*.parquet")
@@ -72,6 +81,7 @@ def main(callapi: bool, num_processes: int, process_parquet: str):
                     parse_parquet_to_db(
                         path=file, object=object, db_engine=db_engine, regios=regio_keys
                     )
+
 
 if __name__ == "__main__":
     main()
