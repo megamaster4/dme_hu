@@ -4,8 +4,9 @@ import sys
 import altair as alt
 import numpy as np
 import polars as pl
+import pandas as pd
 import streamlit as st
-from sklearn import linear_model, svm, tree
+from sklearn import linear_model, svm, tree, kernel_ridge
 from sklearn.model_selection import train_test_split
 from sqlalchemy import select
 
@@ -306,6 +307,12 @@ def main():
     correlation_matrix_sub = correlation_matrix_sub.filter(pl.col("value") > 0.5)
     st.dataframe(correlation_matrix_sub.to_pandas(), use_container_width=True)
 
+    st.markdown(
+        """
+        Deze features met correlaties hoger dan 0.5 kunnen gebruikt worden om de bevolkingsgroei te voorspellen. De volgende lijngrafiek laat de samenhang goed zien, al zien we wel dat de variabele `bedrijventerrein_growth` in het begin minder samenhangt dan de overige features.
+        """
+    )
+
     use_cols_corr = correlation_matrix_sub["index"].to_list()
     use_cols_corr.extend(["bevolking_1_januari_growth", "jaar"])
 
@@ -315,7 +322,7 @@ def main():
     model_df_avg = model_df.groupby("jaar").mean()
 
     model_df_melted = model_df_avg.reset_index().melt(id_vars=["jaar"])
-    print(model_df_melted)
+
     # Plot the average growth per year with altair
     line_chart = (
         alt.Chart(model_df_melted)
@@ -326,18 +333,27 @@ def main():
             color="variable:N",
         )
         .properties(
-            title="Gemiddelde bevolkingsgroei per jaar",
+            title="Gemiddelde bevolkingsgroei per jaar vs Bodemgebruik met correlatie > 0.5",
             height=500,
         )
     )
 
-    # ).mark_line().encode(
-    #     y='woonterrein_growth'
-    # ).mark_line().encode(
-    #     y='sportterrein_growth'
-    # )
-
     st.altair_chart(line_chart, use_container_width=True)
+
+    st.markdown(
+        """
+        ## Voorspellen van Bevolkingsgroei
+        Om de bevolkingsgroei te voorspellen, wordt er gebruik gemaakt van verschillende soort modellen. De features die gebruikt worden zijn de reeds genoemde categorieën met een correlatie van boven de 0.5.
+        De volgende modellen worden gebruikt:
+        - Linear Regression
+        - Support Vector Machine
+        - Decision Tree Regressor
+        - Kernel Ridge Regression
+
+        In eerste instantie wordt de data opgesplitst in een test- en trainingsdataset met een verhouding van 80% trainingsdata en 20% testdata. Vervolgens worden de modellen getraind op de trainingsdata en wordt de score van het model berekend op de testdata. De score geeft aan hoe goed het model de testdata kan voorspellen. De score is een waarde tussen de 0 en 1, waarbij 1 betekent dat het model de testdata perfect kan voorspellen.
+        De onderstaande tabs geven respectievelijk per model de score. Vervolgens wordt in een tabel de actual en predicted waardes naast elkaar gezet, zodat de voorspellingen van de modellen vergeleken kunnen worden met de werkelijke waardes.
+        """
+    )
 
     # Split the data into train and test sets
     X = model_df[
@@ -351,63 +367,68 @@ def main():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    linearModel, svmModel, decisiontreeModel = st.tabs(
-        ["Linear Regression", "Support Vector Machine", "Decision Tree Regressor"]
+    linearModel, svmModel, decisiontreeModel, kernelridgeModel = st.tabs(
+        ["Linear Regression", "Support Vector Machine", "Decision Tree Regressor", "Kernel Ridge Regression"]
     )
+    models = {"LinearRegression": linear_model.LinearRegression(), "SVM": svm.SVR(), "DecisionTreeRegressor": tree.DecisionTreeRegressor(), "KernelRidgeRegression": kernel_ridge.KernelRidge()}
+    trained_models = {}
+    outcomes = {}
+    # Fit all 4 models and print the scores in a tab
+    for modelName, model in models.items():
+        model.fit(X_train, y_train)
+        trained_models[modelName] = model
+        outcomes[modelName] = model.score(X_test, y_test)
 
     with linearModel:
-        reg = linear_model.LinearRegression()
-        reg.fit(X_train, y_train)
-
-        # Predict the test set
-        reg.predict(X_test)
-        # print(X_test)
-        r2_score = reg.score(X_test, y_test)
-
         st.markdown(
             f"""
         ### Linear Regression
-        De score van het lineare model is: {r2_score}
+        De score van het lineare model is: {outcomes["LinearRegression"]}
+
+        De parameters van dit model zijn als volgt: {trained_models["LinearRegression"].get_params()}
         
         """
         )
 
     with svmModel:
-        reg = svm.SVR()
-        reg.fit(X_train, y_train)
-
-        # Predict the test set
-        reg.predict(X_test)
-        r2_score = reg.score(X_test, y_test)
-
         st.markdown(
             f"""
         ### Support Vector Machine
-        De score van het SVM model is: {r2_score}
+        De score van het SVM model is: {outcomes["SVM"]}
         
+        De parameters van dit model zijn als volgt: {trained_models["SVM"].get_params()}
         """
         )
 
     with decisiontreeModel:
-        reg = tree.DecisionTreeRegressor()
-        reg.fit(X_train, y_train)
-
-        # Predict the test set
-        reg.predict(X_test)
-        r2_score = reg.score(X_test, y_test)
-
         st.markdown(
             f"""
         ### Decision Tree Regressor
-        De score van het Decision Tree Regressor model is: {r2_score}
+        De score van het Decision Tree Regressor model is: {outcomes["DecisionTreeRegressor"]}
+
+        De parameters van dit model zijn als volgt: {trained_models["DecisionTreeRegressor"].get_params()}
         
         """
         )
 
-    # # create a Pandas DataFrame with the predicted and actual values
-    # df_actual = pd.DataFrame({'value': y_test, 'year': y_test.index, 'type': 'actual'})
-    # df_pred = pd.DataFrame({'value': y_pred, 'year': y_test.index, 'type': 'predicted'})
-    # df = pd.concat([df_actual, df_pred], ignore_index=True)
+    with kernelridgeModel:
+        st.markdown(
+            f"""
+        ### Kernel Ridge Regression
+        De score van het Kernel Ridge Regression model is: {outcomes["KernelRidgeRegression"]}
+
+        """
+        )
+
+    # Create pandas dataframe to compare the predicted and actual values, with the actual and predicted columns next to each other
+    df = pd.DataFrame()
+    df["year"] = X_test.index
+    df["actual"] = y_test.to_list()
+    
+    for modelName, model in trained_models.items():
+        df[modelName] = model.predict(X_test)
+
+    st.dataframe(df, use_container_width=True)
 
     # # create a scatter plot of the predicted and actual values
     # scatter_plot = alt.Chart(df).mark_point().encode(
