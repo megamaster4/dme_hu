@@ -28,7 +28,7 @@ Initializes the project; Installs the required packages and creates the required
 ```
 make call_api [NUM_PROCESSES=4]
 ```
-Calls the API and saves the data to the `data/parquet` folder. You can specify the number of processes to use by using the `NUM_PROCESSES` variable, default is 4.
+Calls the API and saves the data to the `data/parquet` folder. You can specify the number of processes to use by using the `NUM_PROCESSES` variable, default is 4. All metadata is already saved to the database due to its low volume.
 ```
 make process_parquet
 ```
