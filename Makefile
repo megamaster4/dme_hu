@@ -3,8 +3,11 @@
 DEFAULT_GOAL := help
 
 APP_DIR=$(CURDIR)/app
+DB_DIR=$(CURDIR)/data/db_data
+PAR_DIR=$(CURDIR)/data/parquet
 BACKEND_DIR=$(CURDIR)/backend
 TEST_DIR=$(CURDIR)/tests
+
 
 help:
 	@echo "make init"
@@ -27,6 +30,9 @@ init:
 	@echo DBPASS='mypassword' >> .env
 	@echo DBPORT='5432' >> .env
 	@echo "Please, adjust the .env file with your own preferables!"
+	@echo "Creating data folder..."
+	mkdir "$(DB_DIR)"
+	mkdir "$(PAR_DIR)"
 
 run:
 	@echo "Starting database container..."
