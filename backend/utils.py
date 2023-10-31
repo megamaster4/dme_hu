@@ -54,7 +54,7 @@ def parse_response_typed_dataset(
     row = {}
     lijst = []
     logger.info(f"Parsing {object.__tablename__}...")
-    save_dir = Path(f"data/{object.__tablename__}")
+    save_dir = Path(f"data/parquet/{object.__tablename__}")
     save_dir.mkdir(parents=True, exist_ok=True)
     while True:
         with total_rows_processed.get_lock():
