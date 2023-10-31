@@ -22,13 +22,11 @@ init:
 	@echo "Installing dependencies..."
 	pdm install
 	@echo "Creating .env file..."
-	@echo "DBNAME='postgres'" > .env
-	@echo "DBUSER='postgres'" >> .env
-	@echo "DBPASS='<mypassword>'" >> .env
-	@echo "DBPORT='5432'" >> .env
+	@echo DBNAME='postgres' > .env
+	@echo DBUSER='postgres' >> .env
+	@echo DBPASS='mypassword' >> .env
+	@echo DBPORT='5432' >> .env
 	@echo "Please, adjust the .env file with your own preferables!"
-	@echo "Creating data folder..."
-	mkdir -p data/db_data
 
 run:
 	@echo "Starting database container..."

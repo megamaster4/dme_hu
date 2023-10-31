@@ -1,5 +1,5 @@
 # Instructions
-To run the program, use the main.py script file with the following commands, with their respective usage;
+To run the program, use the makefile commands. The makefile is located in the root folder. The following commands are available;
 
 ## Usage
 Call CBS Statline API to get metadata and data. The data is stored in a parquet file, located in `data/parquet` folder.
