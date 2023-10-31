@@ -34,6 +34,13 @@ init:
 	mkdir "$(DB_DIR)"
 	mkdir "$(PAR_DIR)"
 
+
+process_data:
+	@echo "Processing calling CBS API..."
+	pdm run python $(CURDIR)/main.py --callapi --num-processes $(num_processes)
+	@echo "Processing data..."
+	pdm run python $(CURDIR)/main.py --process-parquet
+
 run:
 	@echo "Starting database container..."
 	docker-compose up -d

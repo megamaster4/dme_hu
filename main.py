@@ -25,7 +25,7 @@ from backend.utils import get_data_from_cbs, get_metadata_from_cbs, parse_parque
     default="",
     help="Path to folder with parquet files to process and upsert into database.",
 )
-def main(callapi: bool, num_processes: int, process_parquet: str, dashboard: bool):
+def main(callapi: bool, num_processes: int, process_parquet: str):
     # Connect to database and create engine
     db_engine = DBEngine(**Settings().model_dump())
 
