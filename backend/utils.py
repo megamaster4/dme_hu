@@ -1,6 +1,6 @@
 import sys
 import xml.etree.ElementTree as ET
-from multiprocessing import Process, Value, Lock
+from multiprocessing import Process, Value
 from pathlib import Path
 from typing import Union
 
@@ -23,9 +23,6 @@ from backend.models import (
     Perioden,
     Regios,
 )
-
-total_rows_processed = Value("i", 0)
-lock = Lock()
 
 
 def parse_response_metadata(
