@@ -156,14 +156,23 @@ def main():
     )
     df_bevolking = get_data_gemeentes()
     df_bodem = get_data_gemeentes_bodemgebruik()
+    aantal_gemeentes = df_bodem.clone()
     devdf = df_bevolking.clone()
-
-    st.sidebar.header("Bevolkingsgroei per Gemeente")
+    
     st.markdown(
         """
         ## Bevolkingsgroei per Gemeente
         In dit tabblad wordt er gekeken naar de bevolkingsgroei van actieve gemeentes in Nederland. Omdat het voor kan komen dat een gemeente is opgeheven, wordt
-        alleen gekeken naar gemeentes die in het jaar 2023 nog actief zijn.
+        alleen gekeken naar gemeentes die in het jaar 2023 nog actief zijn. Het onderstaande overzicht geeft weer welke gemeentes dat zijn:
+        """
+    )
+    aantal_gemeentes = aantal_gemeentes.filter(pl.col("jaar") == pl.col("jaar").max())
+    aantal_gemeentes = aantal_gemeentes.filter(pl.col("bevolking_1_januari").is_not_null())
+    st.dataframe(aantal_gemeentes.select(pl.col("regio"), pl.col("bevolking_1_januari")).to_pandas(), use_container_width=True)
+    
+
+    st.markdown(
+        """
 
         De top 5 gemeentes met de hoogste relatieve en absolute groei, in de afgelopen 5 jaar, worden hieronder weergegeven.
         """

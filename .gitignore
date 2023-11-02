@@ -6,6 +6,8 @@ data/parquet
 *.csv
 .ruff_cache
 *.zip
+*.qmd
+/figures
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
