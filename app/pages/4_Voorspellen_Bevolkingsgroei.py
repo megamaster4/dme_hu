@@ -1,7 +1,6 @@
 from pathlib import Path
 import sys
 
-import altair as alt
 import numpy as np
 import polars as pl
 import pandas as pd
@@ -18,6 +17,7 @@ from backend.config import DFType, Settings
 from backend.db_tools import DBEngine
 
 db_engine = DBEngine(**Settings().model_dump())
+
 
 @st.cache_data
 def get_data_gemeentes_bodemgebruik():
@@ -73,6 +73,7 @@ def get_data_gemeentes_bodemgebruik():
     df = df.drop(["id", "regio_key", "datum_key"])
     return df
 
+
 def growth_columns_by_year(
     df: pl.DataFrame, columns_to_exclude: list[str]
 ) -> pl.DataFrame:
@@ -96,6 +97,7 @@ def growth_columns_by_year(
     df_pd.replace([np.inf, -np.inf], 0, inplace=True)
     df = pl.from_pandas(df_pd)
     return df
+
 
 def main():
     st.markdown(
@@ -152,9 +154,19 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
     linearModel, svmModel, decisiontreeModel, kernelridgeModel = st.tabs(
-        ["Linear Regression", "Support Vector Machine", "Decision Tree Regressor", "Kernel Ridge Regression"]
+        [
+            "Linear Regression",
+            "Support Vector Machine",
+            "Decision Tree Regressor",
+            "Kernel Ridge Regression",
+        ]
     )
-    models = {"LinearRegression": linear_model.LinearRegression(), "SVM": svm.SVR(), "DecisionTreeRegressor": tree.DecisionTreeRegressor(), "KernelRidgeRegression": kernel_ridge.KernelRidge()}
+    models = {
+        "LinearRegression": linear_model.LinearRegression(),
+        "SVM": svm.SVR(),
+        "DecisionTreeRegressor": tree.DecisionTreeRegressor(),
+        "KernelRidgeRegression": kernel_ridge.KernelRidge(),
+    }
     trained_models = {}
     outcomes = {}
     # Fit all 4 models and print the scores in a tab
@@ -208,7 +220,7 @@ def main():
     df = pd.DataFrame()
     df["year"] = X_test.index
     df["actual"] = y_test.to_list()
-    
+
     for modelName, model in trained_models.items():
         df[modelName] = model.predict(X_test)
 

@@ -9,145 +9,7 @@ from sqlalchemy import select
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from backend import crud, models
-from backend.config import DFType, Settings
-from backend.db_tools import DBEngine
-
-db_engine = DBEngine(**Settings().model_dump())
-
-
-@st.cache_data
-def get_data_gemeentes():
-    """get_data_gemeentes _summary_
-
-    Returns:
-        _type_: _description_
-    """
-    stmt = (
-        select(
-            models.Bevolking.bevolking_1_januari,
-            models.Geslacht.geslacht,
-            models.Regios.regio,
-            models.CategoryGroup.catgroup,
-            models.Burgstaat.burgerlijkestaat,
-            models.Perioden.jaar,
-        )
-        .join(
-            models.Geslacht,
-            models.Bevolking.geslacht_key == models.Geslacht.geslacht_key,
-        )
-        .join(models.Perioden, models.Bevolking.datum_key == models.Perioden.datum_key)
-        .join(models.Regios, models.Bevolking.regio_key == models.Regios.regio_key)
-        .join(
-            models.Leeftijd,
-            models.Bevolking.leeftijd_key == models.Leeftijd.leeftijd_key,
-        )
-        .join(
-            models.CategoryGroup,
-            models.Leeftijd.categorygroupid == models.CategoryGroup.catgroup_key,
-        )
-        .join(
-            models.Burgstaat, models.Bevolking.burgst_key == models.Burgstaat.burgst_key
-        )
-        .filter(models.Regios.regio_key.startswith("GM"))
-        .filter(models.CategoryGroup.catgroup == "Totaal")
-        .filter(models.Burgstaat.burgerlijkestaat == "Totaal burgerlijke staat")
-        .filter(models.Geslacht.geslacht == "Totaal mannen en vrouwen")
-    )
-
-    df = crud.fetch_data(stmt=stmt, db_engine=db_engine, package=DFType.POLARS)
-    return df
-
-
-@st.cache_data
-def get_data_gemeentes_bodemgebruik():
-    """get_data_gemeentes_bodemgebruik _summary_
-
-    Returns:
-        _type_: _description_
-    """
-    stmt = (
-        select(
-            models.Bevolking.bevolking_1_januari,
-            models.Geslacht.geslacht,
-            models.Regios.regio,
-            models.CategoryGroup.catgroup,
-            models.Burgstaat.burgerlijkestaat,
-            models.Perioden.jaar,
-            models.Bodemgebruik,
-        )
-        .join(
-            models.Geslacht,
-            models.Bevolking.geslacht_key == models.Geslacht.geslacht_key,
-        )
-        .join(models.Perioden, models.Bevolking.datum_key == models.Perioden.datum_key)
-        .join(models.Regios, models.Bevolking.regio_key == models.Regios.regio_key)
-        .join(
-            models.Leeftijd,
-            models.Bevolking.leeftijd_key == models.Leeftijd.leeftijd_key,
-        )
-        .join(
-            models.CategoryGroup,
-            models.Leeftijd.categorygroupid == models.CategoryGroup.catgroup_key,
-        )
-        .join(
-            models.Burgstaat, models.Bevolking.burgst_key == models.Burgstaat.burgst_key
-        )
-        .join(
-            models.Bodemgebruik,
-            (models.Bevolking.regio_key == models.Bodemgebruik.regio_key)
-            & (models.Bevolking.datum_key == models.Bodemgebruik.datum_key),
-        )
-        .filter(models.Regios.regio_key.startswith("GM"))
-        .filter(models.CategoryGroup.catgroup == "Totaal")
-        .filter(models.Burgstaat.burgerlijkestaat == "Totaal burgerlijke staat")
-        .filter(models.Geslacht.geslacht == "Totaal mannen en vrouwen")
-    )
-
-    df = crud.fetch_data(stmt=stmt, db_engine=db_engine, package=DFType.POLARS)
-    df = df.drop(["id", "regio_key", "datum_key"])
-    return df
-
-
-def extract_top5(df: pl.DataFrame, only_active: bool = True) -> pl.DataFrame:
-    if only_active:
-        active_gemeentes = df.filter(pl.col("jaar") == pl.col("jaar").max())
-        active_gemeentes = active_gemeentes.drop_nulls("bevolking_1_januari").select(
-            pl.col("regio")
-        )
-        df = df.filter(df["regio"].is_in(active_gemeentes["regio"]))
-
-    df = df.with_columns(
-        (pl.col("bevolking_1_januari").shift(5)).over("regio").alias("previous_moment")
-    )
-    df = df.with_columns(
-        (
-            (pl.col("bevolking_1_januari") - pl.col("previous_moment"))
-            / pl.col("previous_moment")
-        ).alias("percentage_growth")
-    )
-    df = df.with_columns(
-        (pl.col("bevolking_1_januari") - pl.col("previous_moment")).alias(
-            "absolute_growth"
-        )
-    )
-    return df
-
-
-def divide_columns_by_column(
-    df: pl.DataFrame, divide_by_column: str, columns_to_exclude: list[str]
-) -> pl.DataFrame:
-    # Get a list of column names except the list to exclude
-    columns_to_exclude.append(divide_by_column)
-    columns_to_divide = [col for col in df.columns if col not in columns_to_exclude]
-
-    # Iterate through the columns and divide by the specified column
-    for column in columns_to_divide:
-        df = df.with_columns(
-            (df[column] / df[divide_by_column]).alias(f"{column}_relative")
-        )
-
-    return df
+from app.shared_code import get_data_gemeentes, get_data_gemeentes_bodemgebruik, divide_columns_by_column, extract_top5
 
 
 def main():
@@ -230,7 +92,7 @@ def main():
     )
 
     devdf_bodem = df_bodem.clone()
-    devdf_bodem = devdf_bodem.filter(pl.col("regio").is_in(["Amsterdam", "Noordwijk"]))
+    # devdf_bodem = devdf_bodem.filter(pl.col("regio").is_in(["Amsterdam", "Noordwijk"]))
 
     exclude_cols = [
         "regio",
@@ -245,6 +107,7 @@ def main():
         divide_by_column="totale_oppervlakte",
         columns_to_exclude=exclude_cols,
     )
+    
     df_divided = df_divided[
         [s.name for s in df_divided if not (s.null_count() == df_divided.height)]
     ]
@@ -259,8 +122,11 @@ def main():
             if (col.startswith("totaal")) and (col.endswith("relative"))
         ],
     )
+
+    df_distribution = df_distribution.drop_nulls("relative_percentage")
+
     chart_stacked = (
-        alt.Chart(df_distribution)
+        alt.Chart(df_distribution.filter(pl.col("regio").is_in(["Amsterdam", "Noordwijk"])))
         .mark_bar()
         .encode(
             x=alt.X("regio:N", axis=alt.Axis(title="Groups")),
@@ -280,9 +146,55 @@ def main():
         """
         Zo zien we dat de gemeente Amsterdam (absolute groei van 64070 inwoners) een groot deel van het oppervlakte gebruikt voor bebouwing, terwijl de gemeente Noordwijk (relatieve groei van 73,39%) een groot deel van het oppervlakte gebruikt voor bebossing of open natuurgebieden.
         
-
+        ### Willekeurige Gemeente
+        Voor verdere verdieping in geen gemeente naar keuze, gebruik onderstaande dropdown om een gemeente te selecteren. Merk op dat hier niet alle gemeentes in staan, maar alleen de gemeentes die in 2023 nog actief zijn & een geregistreerd bodemgebruik hebben.
         """
     )
+
+    regios = df_distribution.unique(subset=["regio"]).sort("regio").select("regio")
+    option = st.selectbox(label='Selecteer een Gemeente', options=regios.to_pandas()["regio"].tolist())
+
+    toggle_subcats = st.toggle("Sub-categorieën", value=False)
+
+    if toggle_subcats:
+        df_distribution = df_divided.melt(
+            id_vars="regio",
+            value_name="relative_percentage",
+            value_vars=[
+                col
+                for col in df_divided.columns
+                if not (col.startswith("totaal_")) and (col.endswith("relative"))
+            ],
+        )
+
+    else:
+        df_distribution = df_divided.melt(
+            id_vars="regio",
+            value_name="relative_percentage",
+            value_vars=[
+                col
+                for col in df_divided.columns
+                if (col.startswith("totaal_")) and (col.endswith("relative"))
+            ],
+        )
+
+    chart_stacked_custom = (
+        alt.Chart(df_distribution.filter(pl.col("regio").is_in([option])))
+        .mark_bar()
+        .encode(
+            x=alt.X("regio:N", axis=alt.Axis(title="Groups")),
+            y=alt.Y(
+                "sum(relative_percentage):Q",
+                axis=alt.Axis(format="%"),
+                stack="normalize",
+            ),
+            color=alt.Color("variable:N", title="Categories"),
+            order=alt.Order("relative_percentage:N", sort="ascending"),
+        )
+        .properties(title="Verdeling bodemgebruik per Gemeente", height=600, width=800)
+    )
+    st.altair_chart(chart_stacked_custom, use_container_width=True)
+
 
 
 if __name__ == "__main__":
