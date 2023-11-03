@@ -12,92 +12,26 @@ from sqlalchemy import select
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from backend import crud, models
-from backend.config import DFType, Settings
-from backend.db_tools import DBEngine
+from app.shared_code import get_data_gemeentes, get_data_gemeentes_bodemgebruik, growth_columns_by_year
 
-db_engine = DBEngine(**Settings().model_dump())
+@st.cache_resource()
+def train_models(X_train, y_train, X_test, y_test):
+    models = {
+        "LinearRegression": linear_model.LinearRegression(),
+        "SVM": svm.SVR(),
+        "DecisionTreeRegressor": tree.DecisionTreeRegressor(),
+        "KernelRidgeRegression": kernel_ridge.KernelRidge(),
+    }
+    trained_models = {}
+    outcomes = {}
 
+    # Fit all 4 models and print the scores in a tab
+    for modelName, model in models.items():
+        model.fit(X_train, y_train)
+        trained_models[modelName] = model
+        outcomes[modelName] = model.score(X_test, y_test)
 
-@st.cache_data
-def get_data_gemeentes_bodemgebruik():
-    """
-    This function returns the data for the gemeentes joined with the bodemgebruik data, filtered on the following criteria:
-    - Regio: Gemeentes
-    - Geslacht: Totaal mannen en vrouwen
-    - CategoryGroup: Totaal
-    - Burgstaat: Totaal burgerlijke staat
-
-    Returns:
-        df: A polars dataframe containing the data for the gemeentes.
-    """
-    stmt = (
-        select(
-            models.Bevolking.bevolking_1_januari,
-            models.Geslacht.geslacht,
-            models.Regios.regio,
-            models.CategoryGroup.catgroup,
-            models.Burgstaat.burgerlijkestaat,
-            models.Perioden.jaar,
-            models.Bodemgebruik,
-        )
-        .join(
-            models.Geslacht,
-            models.Bevolking.geslacht_key == models.Geslacht.geslacht_key,
-        )
-        .join(models.Perioden, models.Bevolking.datum_key == models.Perioden.datum_key)
-        .join(models.Regios, models.Bevolking.regio_key == models.Regios.regio_key)
-        .join(
-            models.Leeftijd,
-            models.Bevolking.leeftijd_key == models.Leeftijd.leeftijd_key,
-        )
-        .join(
-            models.CategoryGroup,
-            models.Leeftijd.categorygroupid == models.CategoryGroup.catgroup_key,
-        )
-        .join(
-            models.Burgstaat, models.Bevolking.burgst_key == models.Burgstaat.burgst_key
-        )
-        .join(
-            models.Bodemgebruik,
-            (models.Bevolking.regio_key == models.Bodemgebruik.regio_key)
-            & (models.Bevolking.datum_key == models.Bodemgebruik.datum_key),
-        )
-        .filter(models.Regios.regio_key.startswith("GM"))
-        .filter(models.CategoryGroup.catgroup == "Totaal")
-        .filter(models.Burgstaat.burgerlijkestaat == "Totaal burgerlijke staat")
-        .filter(models.Geslacht.geslacht == "Totaal mannen en vrouwen")
-    )
-
-    df = crud.fetch_data(stmt=stmt, db_engine=db_engine, package=DFType.POLARS)
-    df = df.drop(["id", "regio_key", "datum_key"])
-    return df
-
-
-def growth_columns_by_year(
-    df: pl.DataFrame, columns_to_exclude: list[str]
-) -> pl.DataFrame:
-    use_cols = [col for col in df.columns if col not in columns_to_exclude]
-
-    for column in use_cols:
-        df = df.with_columns(
-            (pl.col(column).shift(1)).over("regio").alias(f"{column}_previous_moment")
-        )
-        df = df.with_columns(
-            (
-                (pl.col(column) - pl.col(f"{column}_previous_moment"))
-                / pl.col(f"{column}_previous_moment")
-            ).alias(f"{column}_growth")
-        )
-        df = df.fill_nan(0)
-
-    # The following code is needed to replace inf values with 0, because of a bug in Polars.
-    # We will replace them using pandas, and convert the dataframe back to polars before returning the dataframe
-    df_pd = df.to_pandas()
-    df_pd.replace([np.inf, -np.inf], 0, inplace=True)
-    df = pl.from_pandas(df_pd)
-    return df
-
+    return trained_models, outcomes
 
 def main():
     st.markdown(
@@ -115,7 +49,9 @@ def main():
         """
     )
 
+    df_bevolking = get_data_gemeentes()
     df_bodem = get_data_gemeentes_bodemgebruik()
+    devdf_bevolking = df_bevolking.clone()
     devdf_bodem = df_bodem.clone()
 
     regios = devdf_bevolking["regio"].to_list()
@@ -138,8 +74,20 @@ def main():
         ]
     )
 
-    # Use a clone of the data for model training
-    model_df = devdf_bodem.clone().to_pandas()
+    # Use a clone of the data for model training, and pick the features with the highest correlations
+    include_cols = [
+        "wegverkeersterrein_growth",
+        "woonterrein_growth",
+        "bedrijventerrein_growth",
+        "begraafplaats_growth",
+        "sportterrein_growth",
+        "volkstuin_growth",
+        "overig_agrarisch_terrein_growth",
+        "jaar",
+        "bevolking_1_januari_growth"
+        ]
+    model_df = devdf_bodem.clone().select(include_cols).to_pandas()
+    model_df.set_index("jaar", inplace=True)
 
     # Split the data into train and test sets
     X = model_df[
@@ -149,6 +97,7 @@ def main():
             if col not in ["bevolking_1_januari_growth", "jaar"]
         ]
     ]
+    
     y = model_df["bevolking_1_januari_growth"]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
@@ -161,28 +110,14 @@ def main():
             "Kernel Ridge Regression",
         ]
     )
-    models = {
-        "LinearRegression": linear_model.LinearRegression(),
-        "SVM": svm.SVR(),
-        "DecisionTreeRegressor": tree.DecisionTreeRegressor(),
-        "KernelRidgeRegression": kernel_ridge.KernelRidge(),
-    }
-    trained_models = {}
-    outcomes = {}
-    # Fit all 4 models and print the scores in a tab
-    for modelName, model in models.items():
-        model.fit(X_train, y_train)
-        trained_models[modelName] = model
-        outcomes[modelName] = model.score(X_test, y_test)
+    
+    trained_models, outcomes = train_models(X_train, y_train, X_test, y_test)
 
     with linearModel:
         st.markdown(
             f"""
         ### Linear Regression
         De score van het lineare model is: {outcomes["LinearRegression"]}
-
-        De parameters van dit model zijn als volgt: {trained_models["LinearRegression"].get_params()}
-        
         """
         )
 
@@ -191,8 +126,6 @@ def main():
             f"""
         ### Support Vector Machine
         De score van het SVM model is: {outcomes["SVM"]}
-        
-        De parameters van dit model zijn als volgt: {trained_models["SVM"].get_params()}
         """
         )
 
@@ -201,9 +134,6 @@ def main():
             f"""
         ### Decision Tree Regressor
         De score van het Decision Tree Regressor model is: {outcomes["DecisionTreeRegressor"]}
-
-        De parameters van dit model zijn als volgt: {trained_models["DecisionTreeRegressor"].get_params()}
-        
         """
         )
 
@@ -212,9 +142,17 @@ def main():
             f"""
         ### Kernel Ridge Regression
         De score van het Kernel Ridge Regression model is: {outcomes["KernelRidgeRegression"]}
-
         """
         )
+
+    max_outcome_key = max(outcomes, key=outcomes.get)
+
+    st.markdown(
+        f"""
+        ## Voorspellingen
+        The model met de hoogste score is {max_outcome_key}. De voorspellingen voor alle modellen zijn hieronder te zien.
+        """
+    )
 
     # Create pandas dataframe to compare the predicted and actual values, with the actual and predicted columns next to each other
     df = pd.DataFrame()
@@ -226,14 +164,60 @@ def main():
 
     st.dataframe(df, use_container_width=True)
 
-    # # create a scatter plot of the predicted and actual values
-    # scatter_plot = alt.Chart(df).mark_point().encode(
-    #     x=alt.X('year', scale=alt.Scale(domain=[1996, 2020])),
-    #     y='value',
-    #     color='type'
-    # )
 
-    # st.altair_chart(scatter_plot, use_container_width=True)
+    with st.form("voorspellingen"):
+        st.markdown(
+            """
+            ## DIY Voorspellingen
+            Na het trainen van de modellen is het mogelijk om zelf een voorspelling te doen. Dit kan gedaan worden door de sliders te gebruiken om de groei in bodemgebruik in te stellen. De sliders zijn zo ingesteld dat de groei tussen de -1 en 1 kan liggen. Een waarde van 0 betekent dat er geen groei is, een waarde van 1 betekent dat er een groei is van 100%.
+            Als de waardes voor de features zijn gekozen, kan er op de knop `Voorspel` worden gedrukt. De voorspelling in bevolkingsgroei wordt dan weergegeven.
+            """
+        )
+
+        woonterrein_slider = st.slider(
+            "Groei in Woonterrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+        )
+        bedrijventerrein_slider = st.slider(
+            "Groei in Bedrijventerrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+        )
+        begraafplaats_slider = st.slider(
+            "Groei in Begraafplaats",min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+        )
+        sportterrein_slider = st.slider(
+            "Groei in Sportterrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+        )
+        volkstuin_slider = st.slider(
+            "Groei in Volkstuin", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+        )
+        overig_agrarisch_terrein_slider = st.slider(
+            "Groei in Overig Agrarisch Terrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+        )
+        wegverkeersterrein_slider = st.slider(
+            "Groei in Wegverkeersterrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+        )
+        best_model = st.selectbox("Selecteer een model", list(trained_models.keys()))
+        voorspel = st.form_submit_button("Voorspel")
+
+        if voorspel:
+            voorspelling = trained_models[best_model].predict(
+                np.array([
+                    woonterrein_slider,
+                    bedrijventerrein_slider,
+                    begraafplaats_slider,
+                    sportterrein_slider,
+                    volkstuin_slider,
+                    overig_agrarisch_terrein_slider,
+                    wegverkeersterrein_slider,
+                ]).reshape(1,-1)
+            )
+        
+            st.markdown(
+                f"""
+                ### De door jou ingevoerde gegevens over een groei in bodemgebruik zorgen voor een bevolkingsgroei van: 
+                ## {voorspelling[0]*100:.2f}%
+                """
+            )
+
 
 
 if __name__ == "__main__":

@@ -9,31 +9,7 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import get_data_gemeentes, get_data_gemeentes_bodemgebruik
-
-def growth_columns_by_year(
-    df: pl.DataFrame, columns_to_exclude: list[str]
-) -> pl.DataFrame:
-    use_cols = [col for col in df.columns if col not in columns_to_exclude]
-
-    for column in use_cols:
-        df = df.with_columns(
-            (pl.col(column).shift(1)).over("regio").alias(f"{column}_previous_moment")
-        )
-        df = df.with_columns(
-            (
-                (pl.col(column) - pl.col(f"{column}_previous_moment"))
-                / pl.col(f"{column}_previous_moment")
-            ).alias(f"{column}_growth")
-        )
-        df = df.fill_nan(0)
-
-    # The following code is needed to replace inf values with 0, because of a bug in Polars.
-    # We will replace them using pandas, and convert the dataframe back to polars before returning the dataframe
-    df_pd = df.to_pandas()
-    df_pd.replace([np.inf, -np.inf], 0, inplace=True)
-    df = pl.from_pandas(df_pd)
-    return df
+from app.shared_code import get_data_gemeentes, get_data_gemeentes_bodemgebruik, growth_columns_by_year
 
 
 def main():
@@ -45,7 +21,6 @@ def main():
     devdf_bevolking = df_bevolking.clone()
     devdf_bodem = df_bodem.clone()
 
-    st.sidebar.header("Bevolkingsgroei vs Bodemgebruik")
     st.markdown(
         """
         ## Bevolkingsgroei vs Bodemgebruik
