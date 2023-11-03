@@ -211,6 +211,8 @@ def main():
                 ]).reshape(1,-1)
             )
         
+            st.toast('Voorspelling gelukt!', icon='✅')
+
             st.markdown(
                 f"""
                 ### De door jou ingevoerde gegevens over een groei in bodemgebruik zorgen voor een bevolkingsgroei van: 

@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="Project Introduction",
 )
 
-st.title("Wat maakt een gemeente een fijne plek om te wonen?")
+st.title("Hoe kunnen diverse soorten groei in bodemgebruik de relatieve bevolkingsgroei in gemeentes bepalen?")
 
 st.markdown(
     """
@@ -39,36 +39,3 @@ st.markdown(
 )
 
 st.sidebar.success("Selecteer een tabblad om te beginnen")
-
-# db_engine = DBEngine(**Settings().model_dump())
-
-
-# @st.cache_data
-# def get_metadata():
-#     df_regios = crud.select_table_from_db(db_engine=db_engine, table=models.Regios, package=DFType.POLARS)
-#     regios_list = df_regios['regio'].unique().to_list()
-#     return regios_list, df_regios
-
-# regios_list, df_regios = get_metadata()
-
-# st.title('Regios')
-# st.subheader('Data from CBS Statline API')
-# options_regios = st.multiselect('Select columns', regios_list)
-# print(options_regios)
-# options_regio_keys = df_regios.filter(df_regios['regio'].is_in(options_regios))['regio_key'].unique().to_list()
-# stmt = (
-#     select(models.Bevolking.bevolking_1_januari, models.Geslacht.geslacht, models.Regios.regio, models.CategoryGroup.catgroup, models.Burgstaat.burgerlijkestaat, models.Perioden.jaar)
-#     .join(models.Geslacht, models.Bevolking.geslacht_key == models.Geslacht.geslacht_key)
-#     .join(models.Perioden, models.Bevolking.datum_key == models.Perioden.datum_key)
-#     .join(models.Regios, models.Bevolking.regio_key == models.Regios.regio_key)
-#     .join(models.Leeftijd, models.Bevolking.leeftijd_key == models.Leeftijd.leeftijd_key)
-#     .join(models.CategoryGroup, models.Leeftijd.categorygroupid == models.CategoryGroup.catgroup_key)
-#     .join(models.Burgstaat, models.Bevolking.burgst_key == models.Burgstaat.burgst_key)
-#     # .join(models.Bodemgebruik, (models.Bevolking.regio_key == models.Bodemgebruik.regio_key) & (models.Bevolking.datum_key == models.Bodemgebruik.datum_key))
-#     .filter(models.Regios.regio_key.in_(options_regio_keys))
-#     .where(models.CategoryGroup.catgroup == "Totaal")
-#     .where(models.Burgstaat.burgerlijkestaat == "Totaal burgerlijke staat")
-# )
-# df = crud.fetch_data(stmt=stmt, db_engine=db_engine, package=DFType.PANDAS)
-
-# st.bar_chart(data=df, x='jaar', y='bevolking_1_januari', color='geslacht', height=600, width=800)
