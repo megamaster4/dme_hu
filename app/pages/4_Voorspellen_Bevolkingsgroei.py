@@ -2,17 +2,20 @@ from pathlib import Path
 import sys
 
 import numpy as np
-import polars as pl
 import pandas as pd
 import streamlit as st
 from sklearn import linear_model, svm, tree, kernel_ridge
 from sklearn.model_selection import train_test_split
-from sqlalchemy import select
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import get_data_gemeentes, get_data_gemeentes_bodemgebruik, growth_columns_by_year
+from app.shared_code import (
+    get_data_gemeentes,
+    get_data_gemeentes_bodemgebruik,
+    growth_columns_by_year,
+)
+
 
 @st.cache_resource()
 def train_models(X_train, y_train, X_test, y_test):
@@ -32,6 +35,7 @@ def train_models(X_train, y_train, X_test, y_test):
         outcomes[modelName] = model.score(X_test, y_test)
 
     return trained_models, outcomes
+
 
 def main():
     st.markdown(
@@ -84,8 +88,8 @@ def main():
         "volkstuin_growth",
         "overig_agrarisch_terrein_growth",
         "jaar",
-        "bevolking_1_januari_growth"
-        ]
+        "bevolking_1_januari_growth",
+    ]
     model_df = devdf_bodem.clone().select(include_cols).to_pandas()
     model_df.set_index("jaar", inplace=True)
 
@@ -97,7 +101,7 @@ def main():
             if col not in ["bevolking_1_januari_growth", "jaar"]
         ]
     ]
-    
+
     y = model_df["bevolking_1_januari_growth"]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
@@ -110,7 +114,7 @@ def main():
             "Kernel Ridge Regression",
         ]
     )
-    
+
     trained_models, outcomes = train_models(X_train, y_train, X_test, y_test)
 
     with linearModel:
@@ -164,7 +168,6 @@ def main():
 
     st.dataframe(df, use_container_width=True)
 
-
     with st.form("voorspellingen"):
         st.markdown(
             """
@@ -178,10 +181,18 @@ def main():
             "Groei in Woonterrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
         )
         bedrijventerrein_slider = st.slider(
-            "Groei in Bedrijventerrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+            "Groei in Bedrijventerrein",
+            min_value=-1.0,
+            max_value=1.0,
+            value=0.0,
+            step=0.01,
         )
         begraafplaats_slider = st.slider(
-            "Groei in Begraafplaats",min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+            "Groei in Begraafplaats",
+            min_value=-1.0,
+            max_value=1.0,
+            value=0.0,
+            step=0.01,
         )
         sportterrein_slider = st.slider(
             "Groei in Sportterrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
@@ -190,28 +201,38 @@ def main():
             "Groei in Volkstuin", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
         )
         overig_agrarisch_terrein_slider = st.slider(
-            "Groei in Overig Agrarisch Terrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+            "Groei in Overig Agrarisch Terrein",
+            min_value=-1.0,
+            max_value=1.0,
+            value=0.0,
+            step=0.01,
         )
         wegverkeersterrein_slider = st.slider(
-            "Groei in Wegverkeersterrein", min_value=-1.0, max_value=1.0, value=0.0, step=0.01
+            "Groei in Wegverkeersterrein",
+            min_value=-1.0,
+            max_value=1.0,
+            value=0.0,
+            step=0.01,
         )
         best_model = st.selectbox("Selecteer een model", list(trained_models.keys()))
         voorspel = st.form_submit_button("Voorspel")
 
         if voorspel:
             voorspelling = trained_models[best_model].predict(
-                np.array([
-                    woonterrein_slider,
-                    bedrijventerrein_slider,
-                    begraafplaats_slider,
-                    sportterrein_slider,
-                    volkstuin_slider,
-                    overig_agrarisch_terrein_slider,
-                    wegverkeersterrein_slider,
-                ]).reshape(1,-1)
+                np.array(
+                    [
+                        woonterrein_slider,
+                        bedrijventerrein_slider,
+                        begraafplaats_slider,
+                        sportterrein_slider,
+                        volkstuin_slider,
+                        overig_agrarisch_terrein_slider,
+                        wegverkeersterrein_slider,
+                    ]
+                ).reshape(1, -1)
             )
-        
-            st.toast('Voorspelling gelukt!', icon='✅')
+
+            st.toast("Voorspelling gelukt!", icon="✅")
 
             st.markdown(
                 f"""
@@ -219,7 +240,6 @@ def main():
                 ## {voorspelling[0]*100:.2f}%
                 """
             )
-
 
 
 if __name__ == "__main__":

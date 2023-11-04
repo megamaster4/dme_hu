@@ -36,6 +36,10 @@ linting = [
 kernel = [
     "ipykernel>=6.25.2",
 ]
+document = [
+    "nbformat>=5.9.2",
+    "nbclient>=0.8.0",
+]
 
 [tool.ruff]
 ignore = [

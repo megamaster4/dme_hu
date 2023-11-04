@@ -8,7 +8,12 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import get_bevolking_landelijk, get_bodemgebruik_landelijk, divide_columns_by_column
+from app.shared_code import (
+    get_bevolking_landelijk,
+    get_bodemgebruik_landelijk,
+    divide_columns_by_column,
+)
+
 
 def main():
     st.set_page_config(

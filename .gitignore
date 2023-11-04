@@ -7,7 +7,8 @@ data/parquet
 .ruff_cache
 *.zip
 *.qmd
-/figures
+/document
+/_extensions
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

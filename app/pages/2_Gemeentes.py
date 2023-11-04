@@ -4,12 +4,16 @@ import sys
 import altair as alt
 import polars as pl
 import streamlit as st
-from sqlalchemy import select
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import get_data_gemeentes, get_data_gemeentes_bodemgebruik, divide_columns_by_column, extract_top5
+from app.shared_code import (
+    get_data_gemeentes,
+    get_data_gemeentes_bodemgebruik,
+    divide_columns_by_column,
+    extract_top5,
+)
 
 
 def main():
@@ -20,7 +24,7 @@ def main():
     df_bodem = get_data_gemeentes_bodemgebruik()
     aantal_gemeentes = df_bodem.clone()
     devdf = df_bevolking.clone()
-    
+
     st.markdown(
         """
         ## Bevolkingsgroei per Gemeente
@@ -29,9 +33,15 @@ def main():
         """
     )
     aantal_gemeentes = aantal_gemeentes.filter(pl.col("jaar") == pl.col("jaar").max())
-    aantal_gemeentes = aantal_gemeentes.filter(pl.col("bevolking_1_januari").is_not_null())
-    st.dataframe(aantal_gemeentes.select(pl.col("regio"), pl.col("bevolking_1_januari")).to_pandas(), use_container_width=True)
-    
+    aantal_gemeentes = aantal_gemeentes.filter(
+        pl.col("bevolking_1_januari").is_not_null()
+    )
+    st.dataframe(
+        aantal_gemeentes.select(
+            pl.col("regio"), pl.col("bevolking_1_januari")
+        ).to_pandas(),
+        use_container_width=True,
+    )
 
     st.markdown(
         """
@@ -107,7 +117,7 @@ def main():
         divide_by_column="totale_oppervlakte",
         columns_to_exclude=exclude_cols,
     )
-    
+
     df_divided = df_divided[
         [s.name for s in df_divided if not (s.null_count() == df_divided.height)]
     ]
@@ -126,7 +136,9 @@ def main():
     df_distribution = df_distribution.drop_nulls("relative_percentage")
 
     chart_stacked = (
-        alt.Chart(df_distribution.filter(pl.col("regio").is_in(["Amsterdam", "Noordwijk"])))
+        alt.Chart(
+            df_distribution.filter(pl.col("regio").is_in(["Amsterdam", "Noordwijk"]))
+        )
         .mark_bar()
         .encode(
             x=alt.X("regio:N", axis=alt.Axis(title="Groups")),
@@ -152,7 +164,9 @@ def main():
     )
 
     regios = df_distribution.unique(subset=["regio"]).sort("regio").select("regio")
-    option = st.selectbox(label='Selecteer een Gemeente', options=regios.to_pandas()["regio"].tolist())
+    option = st.selectbox(
+        label="Selecteer een Gemeente", options=regios.to_pandas()["regio"].tolist()
+    )
 
     toggle_subcats = st.toggle("Sub-categorieën", value=False)
 
@@ -194,7 +208,6 @@ def main():
         .properties(title="Verdeling bodemgebruik per Gemeente", height=600, width=800)
     )
     st.altair_chart(chart_stacked_custom, use_container_width=True)
-
 
 
 if __name__ == "__main__":

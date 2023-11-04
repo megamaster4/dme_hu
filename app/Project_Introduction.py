@@ -9,7 +9,9 @@ st.set_page_config(
     page_title="Project Introduction",
 )
 
-st.title("Hoe kunnen diverse soorten groei in bodemgebruik de relatieve bevolkingsgroei in gemeentes bepalen?")
+st.title(
+    "Hoe kunnen diverse soorten groei in bodemgebruik de relatieve bevolkingsgroei in gemeentes bepalen?"
+)
 
 st.markdown(
     """

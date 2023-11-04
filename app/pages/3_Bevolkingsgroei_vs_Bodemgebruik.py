@@ -2,14 +2,17 @@ from pathlib import Path
 import sys
 
 import altair as alt
-import numpy as np
 import polars as pl
 import streamlit as st
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import get_data_gemeentes, get_data_gemeentes_bodemgebruik, growth_columns_by_year
+from app.shared_code import (
+    get_data_gemeentes,
+    get_data_gemeentes_bodemgebruik,
+    growth_columns_by_year,
+)
 
 
 def main():
