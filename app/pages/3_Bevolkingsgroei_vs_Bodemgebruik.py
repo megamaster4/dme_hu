@@ -8,19 +8,21 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import (
-    get_data_gemeentes,
-    get_data_gemeentes_bodemgebruik,
-    growth_columns_by_year,
-)
+from backend.crud import get_data_gemeentes, get_data_gemeentes_bodemgebruik
+from backend.utils import growth_columns_by_year
+from app.dashboard_utils import connect_db
+
+get_data_gemeentes = st.cache_data(get_data_gemeentes)
+get_data_gemeentes_bodemgebruik = st.cache_data(get_data_gemeentes_bodemgebruik)
 
 
 def main():
     st.set_page_config(
         page_title="Bevolkingsgroei vs Bodemgebruik",
     )
-    df_bevolking = get_data_gemeentes()
-    df_bodem = get_data_gemeentes_bodemgebruik()
+    db_engine = connect_db()
+    df_bevolking = get_data_gemeentes(_db_engine=db_engine)
+    df_bodem = get_data_gemeentes_bodemgebruik(_db_engine=db_engine)
     devdf_bevolking = df_bevolking.clone()
     devdf_bodem = df_bodem.clone()
 
@@ -98,6 +100,10 @@ def main():
                 title="Correlatie tussen bevolkingsgroei en bodemgebruik",
                 height=500,
             )
+            .configure_axisY(
+                labelPadding=10,  # increase padding between labels and axis
+                labelLimit=500,  # increase limit for label text length
+            )
         )
         st.altair_chart(heatmap, use_container_width=True)
 
@@ -118,6 +124,10 @@ def main():
             .properties(
                 title="Correlatie tussen bevolkingsgroei en bodemgebruik",
                 height=500,
+            )
+            .configure_axisY(
+                labelPadding=10,  # increase padding between labels and axis
+                labelLimit=500,  # increase limit for label text length
             )
         )
         st.altair_chart(heatmap, use_container_width=True)

@@ -8,11 +8,12 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import (
-    get_bevolking_landelijk,
-    get_bodemgebruik_landelijk,
-    divide_columns_by_column,
-)
+from backend.crud import get_bevolking_landelijk, get_bodemgebruik_landelijk
+from app.dashboard_utils import divide_columns_by_column, connect_db
+
+
+get_bevolking_landelijk = st.cache_data(get_bevolking_landelijk)
+get_bodemgebruik_landelijk = st.cache_data(get_bodemgebruik_landelijk)
 
 
 def main():
@@ -26,8 +27,9 @@ def main():
         In dit tabblad wordt er gekeken naar statistieken omtrent bevolkingsgroei en bodemgebruik in Nederland, van het jaar 1988 tot en met 2023.
         """
     )
+    db_engine = connect_db()
 
-    df = get_bevolking_landelijk()
+    df = get_bevolking_landelijk(_db_engine=db_engine)
 
     st.markdown(
         """
@@ -109,7 +111,7 @@ def main():
         Het bodemgebruik in Nederland is als volgt:
         """
     )
-    df_bodemgebruik = get_bodemgebruik_landelijk()
+    df_bodemgebruik = get_bodemgebruik_landelijk(_db_engine=db_engine)
     df_bodemgebruik = df_bodemgebruik.filter(pl.col("jaar") == pl.col("jaar").max())
 
     exclude_cols = [

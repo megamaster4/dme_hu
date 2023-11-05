@@ -53,9 +53,16 @@ process_parquet:
 	@echo "Processing data..."
 	pdm run python $(CURDIR)/main.py --process-parquet $(PAR_DIR)
 
+setup_models:
+	@echo "Starting database container..."
+	docker-compose up -d
+	@echo "Training models..."
+	pdm run python $(CURDIR)/main.py --setup-models
+
 process_all:
 	make call_api
 	make process_parquet
+	make train_models
 
 run:
 	@echo "Starting database container..."

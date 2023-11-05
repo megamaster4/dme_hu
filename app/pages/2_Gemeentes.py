@@ -8,20 +8,20 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import (
-    get_data_gemeentes,
-    get_data_gemeentes_bodemgebruik,
-    divide_columns_by_column,
-    extract_top5,
-)
+from backend.crud import get_data_gemeentes, get_data_gemeentes_bodemgebruik
+from app.dashboard_utils import divide_columns_by_column, extract_top5, connect_db
+
+get_data_gemeentes = st.cache_data(get_data_gemeentes)
+get_data_gemeentes_bodemgebruik = st.cache_data(get_data_gemeentes_bodemgebruik)
 
 
 def main():
     st.set_page_config(
         page_title="Bevolkingsgroei Gemeentes",
     )
-    df_bevolking = get_data_gemeentes()
-    df_bodem = get_data_gemeentes_bodemgebruik()
+    db_engine = connect_db()
+    df_bevolking = get_data_gemeentes(_db_engine=db_engine)
+    df_bodem = get_data_gemeentes_bodemgebruik(_db_engine=db_engine)
     aantal_gemeentes = df_bodem.clone()
     devdf = df_bevolking.clone()
 
@@ -208,6 +208,51 @@ def main():
         .properties(title="Verdeling bodemgebruik per Gemeente", height=600, width=800)
     )
     st.altair_chart(chart_stacked_custom, use_container_width=True)
+
+    # hoogste_inwoners = df_bevolking.clone()
+    # hoogste_inwoners = hoogste_inwoners.filter(pl.col("jaar") == pl.col("jaar").max())
+    # hoogste_inwoners = hoogste_inwoners.filter(
+    #     pl.col("bevolking_1_januari").is_not_null()
+    # )
+    # hoogste_inwoners = hoogste_inwoners.sort("bevolking_1_januari", descending=True)
+    # hoogste_inwoners = hoogste_inwoners.head(5)
+    # hoogste_regios = hoogste_inwoners.select("regio").to_pandas().values.tolist()
+    # hoogste_regios = [x for reg in hoogste_regios for x in reg]
+    # print(hoogste_regios)
+
+    # # Altair chart for the top 5 gemeentes with the highest population
+    # chart_top5 = (
+    #     alt.Chart(hoogste_inwoners.select(["regio", "bevolking_1_januari"]))
+    #     .mark_bar()
+    #     .encode(
+    #         x=alt.X("regio:O", axis=alt.Axis(title="Gemeente")),
+    #         y=alt.Y("bevolking_1_januari:Q", axis=alt.Axis(title="Aantal Inwoners")),
+    #         color=alt.Color("regio:N", title="Gemeente", legend=None),
+    #         order=alt.Order("bevolking_1_januari:Q", sort="ascending"),
+    #     )
+    #     .properties(
+    #         title="Top 5 Gemeentes met de meeste inwoners", height=600, width=800
+    #     )
+    # )
+    # st.altair_chart(chart_top5, use_container_width=True)
+
+    # # Altair chart for the bodemgebruik of the top 5 gemeentes with the highest population
+    # chart_stacked = (
+    #     alt.Chart(df_distribution.filter(pl.col("regio").is_in(hoogste_regios)))
+    #     .mark_bar()
+    #     .encode(
+    #         x=alt.X("regio:N", axis=alt.Axis(title="Groups")),
+    #         y=alt.Y(
+    #             "sum(relative_percentage):Q",
+    #             axis=alt.Axis(format="%"),
+    #             stack="normalize",
+    #         ),
+    #         color=alt.Color("variable:N", title="Categories"),
+    #         order=alt.Order("relative_percentage:N", sort="ascending"),
+    #     )
+    #     .properties(title="Verdeling bodemgebruik per Gemeente", height=600, width=800)
+    # )
+    # st.altair_chart(chart_stacked, use_container_width=True)
 
 
 if __name__ == "__main__":

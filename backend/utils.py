@@ -2,7 +2,10 @@ import sys
 import xml.etree.ElementTree as ET
 from multiprocessing import Process, Value
 from pathlib import Path
+import numpy as np
 from typing import Union
+from sklearn.model_selection import train_test_split
+from joblib import dump
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -165,3 +168,37 @@ def parse_parquet_to_db(
     list_of_objects = [object(**row) for row in list_of_dict]
 
     upsert(db_engine=db_engine, table=object, data=list_of_objects)
+
+
+def growth_columns_by_year(
+    df: pl.DataFrame, columns_to_exclude: list[str]
+) -> pl.DataFrame:
+    use_cols = [col for col in df.columns if col not in columns_to_exclude]
+
+    for column in use_cols:
+        df = df.with_columns(
+            (pl.col(column).shift(1)).over("regio").alias(f"{column}_previous_moment")
+        )
+        df = df.with_columns(
+            (
+                (pl.col(column) - pl.col(f"{column}_previous_moment"))
+                / pl.col(f"{column}_previous_moment")
+            ).alias(f"{column}_growth")
+        )
+        df = df.fill_nan(0)
+
+    # The following code is needed to replace inf values with 0, because of a bug in Polars.
+    # We will replace them using pandas, and convert the dataframe back to polars before returning the dataframe
+    df_pd = df.to_pandas()
+    df_pd.replace([np.inf, -np.inf], 0, inplace=True)
+    df = pl.from_pandas(df_pd)
+    return df
+
+
+def train_models(X, y, models: dict[str, object]) -> None:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+    # Fit all 4 models and print the scores in a tab
+    for modelName, model in models.items():
+        model.fit(X_train, y_train)
+        dump(model, f"backend/ml_models/{modelName}.joblib")

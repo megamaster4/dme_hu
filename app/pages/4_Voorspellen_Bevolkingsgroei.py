@@ -4,37 +4,18 @@ import sys
 import numpy as np
 import pandas as pd
 import streamlit as st
-from sklearn import linear_model, svm, tree, kernel_ridge
 from sklearn.model_selection import train_test_split
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.shared_code import (
-    get_data_gemeentes,
-    get_data_gemeentes_bodemgebruik,
-    growth_columns_by_year,
-)
+from backend.crud import get_data_gemeentes, get_data_gemeentes_bodemgebruik
+from backend.utils import growth_columns_by_year
+from app.dashboard_utils import load_models, model_metrics, connect_db
 
 
-@st.cache_resource()
-def train_models(X_train, y_train, X_test, y_test):
-    models = {
-        "LinearRegression": linear_model.LinearRegression(),
-        "SVM": svm.SVR(),
-        "DecisionTreeRegressor": tree.DecisionTreeRegressor(),
-        "KernelRidgeRegression": kernel_ridge.KernelRidge(),
-    }
-    trained_models = {}
-    outcomes = {}
-
-    # Fit all 4 models and print the scores in a tab
-    for modelName, model in models.items():
-        model.fit(X_train, y_train)
-        trained_models[modelName] = model
-        outcomes[modelName] = model.score(X_test, y_test)
-
-    return trained_models, outcomes
+get_data_gemeentes = st.cache_data(get_data_gemeentes)
+get_data_gemeentes_bodemgebruik = st.cache_data(get_data_gemeentes_bodemgebruik)
 
 
 def main():
@@ -52,9 +33,9 @@ def main():
         De onderstaande tabs geven respectievelijk per model de score. Vervolgens wordt in een tabel de actual en predicted waardes naast elkaar gezet, zodat de voorspellingen van de modellen vergeleken kunnen worden met de werkelijke waardes.
         """
     )
-
-    df_bevolking = get_data_gemeentes()
-    df_bodem = get_data_gemeentes_bodemgebruik()
+    db_engine = connect_db()
+    df_bevolking = get_data_gemeentes(_db_engine=db_engine)
+    df_bodem = get_data_gemeentes_bodemgebruik(_db_engine=db_engine)
     devdf_bevolking = df_bevolking.clone()
     devdf_bodem = df_bodem.clone()
 
@@ -104,7 +85,30 @@ def main():
 
     y = model_df["bevolking_1_januari_growth"]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    model_names = [
+        "LinearRegression",
+        "SVM",
+        "DecisionTreeRegressor",
+        "KernelRidgeRegression",
+    ]
+
+    loaded_models = load_models(model_names)
+
+    trained_models = {}
+    outcomes_MSE = {}
+    outcomes_R2 = {}
+
+    # Freeze random state to show consistent score metrics
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # Fit all 4 models and print the scores in a tab
+    for modelName, model in loaded_models.items():
+        MSE, R2 = model_metrics(X_test, y_test, model)
+        trained_models[modelName] = model
+        outcomes_MSE[modelName] = MSE
+        outcomes_R2[modelName] = R2
 
     linearModel, svmModel, decisiontreeModel, kernelridgeModel = st.tabs(
         [
@@ -115,13 +119,13 @@ def main():
         ]
     )
 
-    trained_models, outcomes = train_models(X_train, y_train, X_test, y_test)
-
     with linearModel:
         st.markdown(
             f"""
         ### Linear Regression
-        De score van het lineare model is: {outcomes["LinearRegression"]}
+        De r² score van het lineare model is: `{outcomes_R2["LinearRegression"]:.3f}`. Voor deze score geldt dat een score van 1 betekent dat het model de testdata perfect kan voorspellen.
+
+        De MSE (Mean Squared Error) van het lineare model is: `{outcomes_MSE["LinearRegression"]:.3f}`. Voor deze score geldt dat een score van 0 betekent dat het model de testdata perfect kan voorspellen.
         """
         )
 
@@ -129,7 +133,9 @@ def main():
         st.markdown(
             f"""
         ### Support Vector Machine
-        De score van het SVM model is: {outcomes["SVM"]}
+        De r² score van het lineare model is: `{outcomes_R2["SVM"]:.3f}`. Voor deze score geldt dat een score van 1 betekent dat het model de testdata perfect kan voorspellen.
+
+        De MSE (Mean Squared Error) van het lineare model is: `{outcomes_MSE["SVM"]:.3f}`. Voor deze score geldt dat een score van 0 betekent dat het model de testdata perfect kan voorspellen.
         """
         )
 
@@ -137,7 +143,9 @@ def main():
         st.markdown(
             f"""
         ### Decision Tree Regressor
-        De score van het Decision Tree Regressor model is: {outcomes["DecisionTreeRegressor"]}
+        De r² score van het lineare model is: `{outcomes_R2["DecisionTreeRegressor"]:.3f}`. Voor deze score geldt dat een score van 1 betekent dat het model de testdata perfect kan voorspellen.
+
+        De MSE (Mean Squared Error) van het lineare model is: `{outcomes_MSE["DecisionTreeRegressor"]:.3f}`. Voor deze score geldt dat een score van 0 betekent dat het model de testdata perfect kan voorspellen.
         """
         )
 
@@ -145,16 +153,18 @@ def main():
         st.markdown(
             f"""
         ### Kernel Ridge Regression
-        De score van het Kernel Ridge Regression model is: {outcomes["KernelRidgeRegression"]}
+        De r² score van het lineare model is: `{outcomes_R2["KernelRidgeRegression"]:.3f}`. Voor deze score geldt dat een score van 1 betekent dat het model de testdata perfect kan voorspellen.
+
+        De MSE (Mean Squared Error) van het lineare model is: `{outcomes_MSE["KernelRidgeRegression"]:.3f}`. Voor deze score geldt dat een score van 0 betekent dat het model de testdata perfect kan voorspellen.
         """
         )
 
-    max_outcome_key = max(outcomes, key=outcomes.get)
+    max_outcome_key = max(outcomes_R2, key=outcomes_R2.get)
 
     st.markdown(
         f"""
         ## Voorspellingen
-        The model met de hoogste score is {max_outcome_key}. De voorspellingen voor alle modellen zijn hieronder te zien.
+        The model met de hoogste r² score is {max_outcome_key}. De voorspellingen voor alle modellen zijn hieronder te zien.
         """
     )
 
@@ -218,7 +228,7 @@ def main():
         voorspel = st.form_submit_button("Voorspel")
 
         if voorspel:
-            voorspelling = trained_models[best_model].predict(
+            pred_x = pd.DataFrame(
                 np.array(
                     [
                         woonterrein_slider,
@@ -229,8 +239,11 @@ def main():
                         overig_agrarisch_terrein_slider,
                         wegverkeersterrein_slider,
                     ]
-                ).reshape(1, -1)
+                ).reshape(1, -1),
+                columns=X.columns,
             )
+
+            voorspelling = trained_models[best_model].predict(pred_x)
 
             st.toast("Voorspelling gelukt!", icon="✅")
 

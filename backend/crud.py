@@ -86,3 +86,155 @@ def upsert(
     )
     db_engine.session.execute(stmt)
     db_engine.session.commit()
+
+
+def get_bevolking_landelijk(_db_engine: DBEngine):
+    stmt = (
+        select(
+            Bevolking.bevolking_1_januari,
+            Geslacht.geslacht,
+            Regios.regio,
+            CategoryGroup.catgroup,
+            Burgstaat.burgerlijkestaat,
+            Perioden.jaar,
+        )
+        .join(
+            Geslacht,
+            Bevolking.geslacht_key == Geslacht.geslacht_key,
+        )
+        .join(Perioden, Bevolking.datum_key == Perioden.datum_key)
+        .join(Regios, Bevolking.regio_key == Regios.regio_key)
+        .join(
+            Leeftijd,
+            Bevolking.leeftijd_key == Leeftijd.leeftijd_key,
+        )
+        .join(
+            CategoryGroup,
+            Leeftijd.categorygroupid == CategoryGroup.catgroup_key,
+        )
+        .join(Burgstaat, Bevolking.burgst_key == Burgstaat.burgst_key)
+        .filter(Regios.regio_key == "NL01  ")
+        .filter(CategoryGroup.catgroup == "Totaal")
+        .filter(Burgstaat.burgerlijkestaat == "Totaal burgerlijke staat")
+    )
+
+    df = fetch_data(stmt=stmt, db_engine=_db_engine, package=DFType.POLARS)
+    return df
+
+
+def get_bodemgebruik_landelijk(_db_engine: DBEngine):
+    stmt = (
+        select(
+            Bevolking.bevolking_1_januari,
+            Geslacht.geslacht,
+            Regios.regio,
+            CategoryGroup.catgroup,
+            Burgstaat.burgerlijkestaat,
+            Perioden.jaar,
+            Bodemgebruik,
+        )
+        .join(
+            Geslacht,
+            Bevolking.geslacht_key == Geslacht.geslacht_key,
+        )
+        .join(Perioden, Bevolking.datum_key == Perioden.datum_key)
+        .join(Regios, Bevolking.regio_key == Regios.regio_key)
+        .join(
+            Leeftijd,
+            Bevolking.leeftijd_key == Leeftijd.leeftijd_key,
+        )
+        .join(
+            CategoryGroup,
+            Leeftijd.categorygroupid == CategoryGroup.catgroup_key,
+        )
+        .join(Burgstaat, Bevolking.burgst_key == Burgstaat.burgst_key)
+        .join(
+            Bodemgebruik,
+            (Bevolking.regio_key == Bodemgebruik.regio_key)
+            & (Bevolking.datum_key == Bodemgebruik.datum_key),
+        )
+        .filter(Regios.regio_key == "NL01  ")
+        .filter(CategoryGroup.catgroup == "Totaal")
+        .filter(Burgstaat.burgerlijkestaat == "Totaal burgerlijke staat")
+    )
+
+    df = fetch_data(stmt=stmt, db_engine=_db_engine, package=DFType.POLARS)
+    df = df.drop(["id", "regio_key", "datum_key"])
+    return df
+
+
+def get_data_gemeentes(_db_engine: DBEngine):
+    stmt = (
+        select(
+            Bevolking.bevolking_1_januari,
+            Geslacht.geslacht,
+            Regios.regio,
+            CategoryGroup.catgroup,
+            Burgstaat.burgerlijkestaat,
+            Perioden.jaar,
+        )
+        .join(
+            Geslacht,
+            Bevolking.geslacht_key == Geslacht.geslacht_key,
+        )
+        .join(Perioden, Bevolking.datum_key == Perioden.datum_key)
+        .join(Regios, Bevolking.regio_key == Regios.regio_key)
+        .join(
+            Leeftijd,
+            Bevolking.leeftijd_key == Leeftijd.leeftijd_key,
+        )
+        .join(
+            CategoryGroup,
+            Leeftijd.categorygroupid == CategoryGroup.catgroup_key,
+        )
+        .join(Burgstaat, Bevolking.burgst_key == Burgstaat.burgst_key)
+        .filter(Regios.regio_key.startswith("GM"))
+        .filter(CategoryGroup.catgroup == "Totaal")
+        .filter(Burgstaat.burgerlijkestaat == "Totaal burgerlijke staat")
+        .filter(Geslacht.geslacht == "Totaal mannen en vrouwen")
+    )
+
+    df = fetch_data(stmt=stmt, db_engine=_db_engine, package=DFType.POLARS)
+    return df
+
+
+def get_data_gemeentes_bodemgebruik(_db_engine: DBEngine):
+    stmt = (
+        select(
+            Bevolking.bevolking_1_januari,
+            Geslacht.geslacht,
+            Regios.regio,
+            CategoryGroup.catgroup,
+            Burgstaat.burgerlijkestaat,
+            Perioden.jaar,
+            Bodemgebruik,
+        )
+        .join(
+            Geslacht,
+            Bevolking.geslacht_key == Geslacht.geslacht_key,
+        )
+        .join(Perioden, Bevolking.datum_key == Perioden.datum_key)
+        .join(Regios, Bevolking.regio_key == Regios.regio_key)
+        .join(
+            Leeftijd,
+            Bevolking.leeftijd_key == Leeftijd.leeftijd_key,
+        )
+        .join(
+            CategoryGroup,
+            Leeftijd.categorygroupid == CategoryGroup.catgroup_key,
+        )
+        .join(Burgstaat, Bevolking.burgst_key == Burgstaat.burgst_key)
+        .join(
+            Bodemgebruik,
+            (Bevolking.regio_key == Bodemgebruik.regio_key)
+            & (Bevolking.datum_key == Bodemgebruik.datum_key),
+        )
+        .filter(Regios.regio_key.startswith("GM"))
+        .filter(CategoryGroup.catgroup == "Totaal")
+        .filter(Burgstaat.burgerlijkestaat == "Totaal burgerlijke staat")
+        .filter(Geslacht.geslacht == "Totaal mannen en vrouwen")
+    )
+
+    df = fetch_data(stmt=stmt, db_engine=_db_engine, package=DFType.POLARS)
+    df = df.drop(["id", "regio_key", "datum_key"])
+    return df
