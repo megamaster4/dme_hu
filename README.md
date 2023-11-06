@@ -33,6 +33,12 @@ Calls the API and saves the data to the `data/parquet` folder. You can specify t
 make process_parquet
 ```
 Runs the database container and processes the parquet files to the database.
+
+```
+make setup_models
+```
+Runs the database container and trains the models. These models will be saved in `backend/ml_models` for usage in the dashboard.
+
 ```
 make process_all [NUM_PROCESSES=4]
 ```
