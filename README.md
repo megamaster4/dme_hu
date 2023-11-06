@@ -42,7 +42,7 @@ Runs the database container and trains the models. These models will be saved in
 ```
 make process_all [NUM_PROCESSES=4]
 ```
-Calls the API, processes the parquet files and saves the data to the database, factually a combination of the `call_api` and `process_parquet` commands. You can specify the number of processes to use by using the `NUM_PROCESSES` variable, default is 4.
+Calls the API, processes the parquet files and saves the data to the database, factually a combination of the `call_api`, `process_parquet` and `setup_models` commands. You can specify the number of processes to use by using the `NUM_PROCESSES` variable, default is 4.
 ```
 make run
 ```
