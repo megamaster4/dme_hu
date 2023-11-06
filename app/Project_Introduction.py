@@ -16,8 +16,9 @@ st.title(
 st.markdown(
     """
     ## Project Introductie
-    In dit project wordt er gekeken naar de leefbaarheid van gemeentes in Nederland. Voor de scope van dit project wordt enkel gekeken naar het bevolkingsaantal,
-    de burgerlijke staat, de leeftijd van de inwoners en het bodemgebruik in hectare van de gemeenten. De data is afkomstig van het CBS Statline API.
+    Dit onderzoek zal zich dus vooral richten op het analyseren van de correlaties tussen bevolkingsgroei en verschillende vormen van bodemgebruik. 
+    Het verkrijgen van inzicht in de invloed van bevolkingsgroei op bodemgebruik zal verschillende belanghebbenden ten goede komen, waaronder lokale overheden, stedelijke planners, milieubeschermingsinstanties en ontwikkelaars. 
+    De resultaten zullen helpen bij het informeren en vormgeven van strategieën met betrekking tot toekomstige ruimtelijke ordening, landgebruik en infrastructuurontwikkelingen in de gemeente.
 
     ### Data
     De data is afkomstig van het CBS Statline API. Ter borging en ontlasting van de database, is er voor gekozen om eerst de data op te slaan in een Parquet bestand.
@@ -36,7 +37,7 @@ st.markdown(
     - `bodemgebruik`: bevat het bodemgebruik van de verschillende regio's
 
     ### Data Analyse
-    In de verschillende tabbladen wordt stilgestaand bij verschillende vraagstukken omtrent de bevolkingsgroei en leefbaarheid van de gemeentes in Nederland.
+    In de verschillende tabbladen wordt stilgestaand bij verschillende vraagstukken omtrent de bevolkingsgroei en bodemgebruik van de gemeentes in Nederland.
     """
 )
 
